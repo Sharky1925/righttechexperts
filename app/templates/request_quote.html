@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+{% block title %}Request a Quote - {{ site_settings.get('company_name', 'Right On Repair') }}{% endblock %}
+{% block meta_description %}Request a free IT services quote — personal device repair or full business solutions. Submit your project scope, priorities, and requirements and receive a scoped proposal fast.{% endblock %}
+{% block og_title %}Request a Quote - {{ site_settings.get('company_name', 'Right On Repair') }}{% endblock %}
+{% block og_description %}Get a quote for personal device repair, home setup, or full business IT solutions. Two paths — one fast, easy intake process.{% endblock %}
+{% block meta_keywords %}request IT quote Orange County, managed IT quote, cybersecurity quote, web development quote, cloud services quote{% endblock %}
+
+{% block structured_data %}
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Request a Quote",
+  "description": "Request a free quote for personal device repair or full business IT solutions including managed IT, cybersecurity, cloud, and development services.",
+  "url": {{ public_url(request.base_url) | tojson }},
+  "mainEntity": {
+    "@type": "Service",
+    "name": "IT Services Quote",
+    "provider": {
+      "@type": "Organization",
+      "name": {{ site_settings.get('company_name', 'Right On Repair') | tojson }}
+    },
+    "description": "Personal and business IT service quotes covering device repair, managed IT, cybersecurity, cloud infrastructure, and web development."
+  }
+}
+</script>
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "{{ public_url(url_for('main.index')) }}" },
+    { "@type": "ListItem", "position": 2, "name": "Request Quote", "item": {{ public_url(request.base_url) | tojson }} }
+  ]
+}
+</script>
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between a personal and business quote?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A personal quote covers individual services like device repair, home network setup, and personal tech support. A business quote is a detailed intake for managed IT, cybersecurity, cloud infrastructure, and enterprise-level projects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How quickly will I receive a response?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We aim to respond within one business day. Your submission creates a structured internal ticket so our team can review, prioritize, and deliver an accurate scoped proposal."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What services can I request a quote for?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We provide quotes for managed IT services, cybersecurity solutions, cloud infrastructure, web and app development, technical repair, networking, and more."
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+{% set selected_additional = request.form.getlist('additional_services') %}
+<section class="page-header page-header--compact">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Request Quote</li>
+      </ol>
+    </nav>
+    <h1>Request a Quote</h1>
+    {% include "_hero_slogan.html" %}
+    <p>Whether you need personal device help or a full business solution, choose your path below and we'll deliver a scoped proposal fast.</p>
+  </div>
+</section>
+
+<section class="section quote-section section--layout-open">
+  <div class="container">
+    <div class="service-detail-hero service-detail-hero--v2 quote-hero-card reveal">
+      <div class="service-kicker-badge">Quote Intake Workflow</div>
+      <h2>Business Scope, Technical Detail, and Clear Next Steps</h2>
+      <p>Every submission creates a structured internal ticket so our team can review faster, prioritize correctly, and deliver an accurate quote.</p>
+      <div class="quote-hero-chips">
+        <span><i class="fa-solid fa-ticket"></i> CMS Ticket Created</span>
+        <span><i class="fa-solid fa-list-check"></i> Structured Intake</span>
+        <span><i class="fa-solid fa-clock"></i> Rapid Follow-Up</span>
+      </div>
+    </div>
+
+    <div class="quote-toggle-wrap reveal">
+      <div>
+        <div class="quote-toggle" id="quoteToggle" role="tablist" aria-label="Quote type">
+          <div class="quote-toggle-slider" aria-hidden="true"></div>
+          <button type="button" class="quote-toggle-btn is-active" data-target="personal" role="tab" aria-selected="true">
+            <i class="fa-solid fa-user"></i> Personal
+          </button>
+          <button type="button" class="quote-toggle-btn" data-target="business" role="tab" aria-selected="false">
+            <i class="fa-solid fa-building"></i> Business
+          </button>
+        </div>
+        <span class="quote-toggle-label">Choose your quote type</span>
+      </div>
+    </div>
+
+    <div class="quote-chooser-grid">
+      <a href="{{ url_for('main.request_quote_personal') }}" class="quote-chooser-card quote-chooser-card--personal reveal-left stagger-1">
+        <div class="quote-chooser-card-glow"></div>
+        <div class="quote-chooser-icon"><i class="fa-solid fa-user"></i></div>
+        <span class="quote-chooser-badge">For Individuals</span>
+        <span class="quote-chooser-title">Personal Quote</span>
+        <span class="quote-chooser-desc">Device repair, home setup, or individual tech support — quick and simple.</span>
+        <ul class="quote-chooser-features">
+          <li class="reveal-scale stagger-2"><i class="fa-solid fa-check"></i> Device repair &amp; diagnostics</li>
+          <li class="reveal-scale stagger-3"><i class="fa-solid fa-check"></i> Home network setup</li>
+          <li class="reveal-scale stagger-4"><i class="fa-solid fa-check"></i> Personal tech support</li>
+          <li class="reveal-scale stagger-5"><i class="fa-solid fa-check"></i> Quick one-minute form</li>
+        </ul>
+        <span class="quote-chooser-cta">Get Started <i class="fa-solid fa-arrow-right"></i></span>
+      </a>
+      <a href="#business-form" id="businessChooserCard" class="quote-chooser-card quote-chooser-card--business reveal-right stagger-1">
+        <div class="quote-chooser-card-glow"></div>
+        <div class="quote-chooser-icon"><i class="fa-solid fa-building"></i></div>
+        <span class="quote-chooser-badge">For Companies</span>
+        <span class="quote-chooser-title">Business Quote</span>
+        <span class="quote-chooser-desc">Managed IT, cybersecurity, cloud, and enterprise projects — detailed scoping.</span>
+        <ul class="quote-chooser-features">
+          <li class="reveal-scale stagger-2"><i class="fa-solid fa-check"></i> Managed IT &amp; infrastructure</li>
+          <li class="reveal-scale stagger-3"><i class="fa-solid fa-check"></i> Cybersecurity solutions</li>
+          <li class="reveal-scale stagger-4"><i class="fa-solid fa-check"></i> Cloud &amp; development</li>
+          <li class="reveal-scale stagger-5"><i class="fa-solid fa-check"></i> Scoped proposal with timeline</li>
+        </ul>
+        <span class="quote-chooser-cta">Get Started <i class="fa-solid fa-arrow-right"></i></span>
+      </a>
+    </div>
+
+    <div class="row g-4 mt-1 page-layout-grid quote-layout-grid" id="business-form">
+      <div class="col-xl-8 reveal-left">
+        <div class="contact-form-wrap quote-form-wrap">
+          <div class="quote-form-head">
+            <h3><i class="fa-solid fa-file-invoice-dollar"></i> Quote Request Form</h3>
+            <p>Fields marked with <strong>*</strong> are required.</p>
+          </div>
+          <form method="POST" action="{{ url_for('main.request_quote') }}">
+            {{ csrf_input() }}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="full_name">Full Name *</label>
+                <input type="text" class="form-control" id="full_name" name="full_name" autocomplete="name" required value="{{ request.form.get('full_name', '') }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="email">Business Email *</label>
+                <input type="email" class="form-control" id="email" name="email" autocomplete="email" required value="{{ request.form.get('email', '') }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="phone">Phone *</label>
+                <input type="tel" class="form-control" id="phone" name="phone" autocomplete="tel" inputmode="tel" required value="{{ request.form.get('phone', '') }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="company">Company (optional)</label>
+                <input type="text" class="form-control" id="company" name="company" autocomplete="organization" value="{{ request.form.get('company', '') }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="website">Website</label>
+                <input type="url" class="form-control" id="website" name="website" placeholder="https://example.com" value="{{ request.form.get('website', '') }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="project_title">Project Title</label>
+                <input type="text" class="form-control" id="project_title" name="project_title" placeholder="Example: Branch Network Upgrade" value="{{ request.form.get('project_title', '') }}">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label" for="primary_service_slug">Primary Service *</label>
+                <select class="form-select" id="primary_service_slug" name="primary_service_slug" required>
+                  <option value="">Select primary service</option>
+                  <optgroup label="Professional IT Services">
+                    {% for service in professional_services %}
+                    <option value="{{ service.slug }}" {% if request.form.get('primary_service_slug') == service.slug %}selected{% endif %}>{{ service.title }}</option>
+                    {% endfor %}
+                  </optgroup>
+                  <optgroup label="Technical Repair Services">
+                    {% for service in repair_services %}
+                    <option value="{{ service.slug }}" {% if request.form.get('primary_service_slug') == service.slug %}selected{% endif %}>{{ service.title }}</option>
+                    {% endfor %}
+                  </optgroup>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="preferred_contact">Preferred Contact *</label>
+                <select class="form-select" id="preferred_contact" name="preferred_contact" required>
+                  {% for value, label in contact_options.items() %}
+                  <option value="{{ value }}" {% if request.form.get('preferred_contact', 'either') == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label" for="budget_range">Budget Range</label>
+                <select class="form-select" id="budget_range" name="budget_range">
+                  {% for value, label in budget_options.items() %}
+                  <option value="{{ value }}" {% if request.form.get('budget_range', 'not_sure') == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="timeline">Target Timeline</label>
+                <select class="form-select" id="timeline" name="timeline">
+                  {% for value, label in timeline_options.items() %}
+                  <option value="{{ value }}" {% if request.form.get('timeline', 'planning') == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="urgency">Urgency</label>
+                <select class="form-select" id="urgency" name="urgency">
+                  {% for value, label in urgency_options.items() %}
+                  <option value="{{ value }}" {% if request.form.get('urgency', 'normal') == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label" for="team_size">Estimated Team Size</label>
+                <input type="text" class="form-control" id="team_size" name="team_size" placeholder="Example: 25 employees" value="{{ request.form.get('team_size', '') }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="location_count">Locations / Sites</label>
+                <input type="text" class="form-control" id="location_count" name="location_count" placeholder="Example: 3 offices + remote staff" value="{{ request.form.get('location_count', '') }}">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label" for="compliance">Compliance Requirements</label>
+                <select class="form-select" id="compliance" name="compliance">
+                  {% for value, label in compliance_options.items() %}
+                  <option value="{{ value }}" {% if request.form.get('compliance', 'none') == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="integrations">Key Integrations</label>
+                <input type="text" class="form-control" id="integrations" name="integrations" placeholder="Example: Microsoft 365, QuickBooks, HubSpot" value="{{ request.form.get('integrations', '') }}">
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Additional Related Services</label>
+                <div class="quote-service-picker">
+                  {% for service in professional_services + repair_services %}
+                  <label class="quote-service-option">
+                    <input type="checkbox" name="additional_services" value="{{ service.slug }}" {% if service.slug in selected_additional %}checked{% endif %}>
+                    <span class="quote-service-option-body">
+                      <i class="{{ service.icon_class }}"></i>
+                      <span>{{ service.title }}</span>
+                    </span>
+                  </label>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label" for="business_goals">Business Goals *</label>
+                <textarea class="form-control" id="business_goals" name="business_goals" rows="4" minlength="20" required placeholder="What business outcomes are you targeting?">{{ request.form.get('business_goals', '') }}</textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="pain_points">Current Challenges *</label>
+                <textarea class="form-control" id="pain_points" name="pain_points" rows="4" minlength="20" required placeholder="What technical issues, bottlenecks, or risks are you facing?">{{ request.form.get('pain_points', '') }}</textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="current_environment">Current Environment</label>
+                <textarea class="form-control" id="current_environment" name="current_environment" rows="3" placeholder="Current stack, vendors, infrastructure, and tools.">{{ request.form.get('current_environment', '') }}</textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="additional_notes">Additional Notes</label>
+                <textarea class="form-control" id="additional_notes" name="additional_notes" rows="3" placeholder="Anything else we should factor into scope, sequencing, or rollout?">{{ request.form.get('additional_notes', '') }}</textarea>
+              </div>
+
+              {% if turnstile_enabled %}
+              <div class="col-12">
+                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+              </div>
+              {% endif %}
+              <div class="col-12">
+                <button type="submit" class="btn btn-quote-submit">
+                  <i class="fa-solid fa-paper-plane"></i>
+                  Submit Quote Request
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-xl-4 reveal-right quote-side-col">
+        <div class="service-visual-panel quote-side-panel">
+          <div class="service-panel-head">
+            <h2><i class="fa-solid fa-route"></i> What Happens Next</h2>
+            <p>Clear process from intake to final quote.</p>
+          </div>
+          <ul class="service-value-list quote-next-list">
+            <li><i class="fa-solid fa-ticket"></i> A CMS ticket is created instantly with your intake details.</li>
+            <li><i class="fa-solid fa-magnifying-glass-chart"></i> We review scope, complexity, and dependencies.</li>
+            <li><i class="fa-solid fa-people-group"></i> You receive follow-up for clarification if needed.</li>
+            <li><i class="fa-solid fa-file-signature"></i> We send a scoped quote with timeline and deliverables.</li>
+          </ul>
+        </div>
+
+        <div class="service-visual-panel quote-side-panel mt-4">
+          <div class="service-panel-head">
+            <h2><i class="fa-solid fa-layer-group"></i>Related Services</h2>
+            <p>Common service combinations requested by clients.</p>
+          </div>
+          <div class="quote-service-list">
+            {% for service in professional_services %}
+            <a class="quote-service-link" href="{{ url_for('main.service_detail', slug=service.slug) }}">
+              <i class="{{ service.icon_class }}"></i>
+              <span>{{ service.title }}</span>
+            </a>
+            {% endfor %}
+            {% for service in repair_services %}
+            <a class="quote-service-link" href="{{ url_for('main.service_detail', slug=service.slug) }}">
+              <i class="{{ service.icon_class }}"></i>
+              <span>{{ service.title }}</span>
+            </a>
+            {% endfor %}
+          </div>
+          <div class="quote-side-actions">
+            <a href="{{ url_for('main.services') }}" class="btn btn-ghost"><i class="fa-solid fa-arrow-right"></i> Browse Services</a>
+            <a href="{{ url_for('main.remote_support') }}" class="btn btn-remote-support"><i class="fa-solid fa-life-ring"></i> Need Immediate Help?</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if turnstile_enabled %}
+<script nonce="{{ csp_nonce }}" src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{% endif %}
+<script nonce="{{ csp_nonce }}">
+(function() {
+  var toggle = document.getElementById('quoteToggle');
+  if (!toggle) return;
+  var btns = Array.prototype.slice.call(toggle.querySelectorAll('.quote-toggle-btn'));
+  var personalUrl = '{{ url_for("main.request_quote_personal") }}';
+  var navigating = false;
+  var formEl = document.getElementById('business-form');
+  var bizCard = document.getElementById('businessChooserCard');
+
+  function setActive(activeBtn) {
+    btns.forEach(function(b) {
+      var isActive = b === activeBtn;
+      b.classList.toggle('is-active', isActive);
+      b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      b.setAttribute('tabindex', isActive ? '0' : '-1');
+    });
+  }
+
+  function selectTarget(target) {
+    if (navigating) return;
+    var btn = btns.filter(function(b) { return b.getAttribute('data-target') === target; })[0];
+    if (!btn) return;
+    setActive(btn);
+
+    if (target === 'business') {
+      toggle.classList.add('is-business');
+      if (formEl) {
+        setTimeout(function() {
+          formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }
+    } else {
+      toggle.classList.remove('is-business');
+      navigating = true;
+      setTimeout(function() {
+        window.location.href = personalUrl;
+      }, 300);
+    }
+  }
+
+  /* Click handler */
+  btns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      selectTarget(btn.getAttribute('data-target'));
+    });
+  });
+
+  /* Keyboard: arrow keys move between tabs (WAI-ARIA tablist pattern) */
+  toggle.addEventListener('keydown', function(e) {
+    var idx = btns.indexOf(document.activeElement);
+    if (idx < 0) return;
+    var next = -1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      next = (idx + 1) % btns.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      next = (idx - 1 + btns.length) % btns.length;
+    }
+    if (next >= 0) {
+      e.preventDefault();
+      btns[next].focus();
+      selectTarget(btns[next].getAttribute('data-target'));
+    }
+  });
+
+  /* Set initial tabindex */
+  btns.forEach(function(b) {
+    b.setAttribute('tabindex', b.classList.contains('is-active') ? '0' : '-1');
+  });
+
+  /* Sync toggle when business chooser card is clicked */
+  if (bizCard) {
+    bizCard.addEventListener('click', function(e) {
+      e.preventDefault();
+      selectTarget('business');
+    });
+  }
+
+  /* If page loads with #business-form hash, auto-select business */
+  if (window.location.hash === '#business-form') {
+    var bBtn = btns.filter(function(b) { return b.getAttribute('data-target') === 'business'; })[0];
+    if (bBtn) {
+      setActive(bBtn);
+      toggle.classList.add('is-business');
+    }
+  }
+})();
+</script>
+{% endblock %}

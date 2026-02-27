@@ -1,0 +1,55 @@
+{% extends "admin/base.html" %}
+{% block page_title %}{{ 'Edit User — ' ~ user.username if user else 'Add Admin User' }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-arrow-left"></i> Back to Users</a>
+</div>
+
+<div class="card admin-card-slim">
+  <div class="card-body p-4">
+    <h3 class="mb-4">{{ 'Edit User' if user else 'Add Admin User' }}</h3>
+    {% set selected_role = request.form.get('role', user.role_key if user else default_role) %}
+    <form method="POST">
+      {{ csrf_input() }}
+
+      <div class="mb-3">
+        <label class="form-label" for="username">Username</label>
+        {% if user %}
+        <input type="text" class="form-control" id="username" value="{{ user.username }}" disabled>
+        <small class="text-muted">Username cannot be changed.</small>
+        {% else %}
+        <input type="text" class="form-control" id="username" name="username" placeholder="e.g. johndoe" required>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="email">Email</label>
+        <input type="email" class="form-control" id="email" name="email" value="{{ user.email if user else '' }}" placeholder="admin@example.com" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="role">Role Tier</label>
+        <select id="role" name="role" class="form-select">
+          {% for role in assignable_roles %}
+          <option value="{{ role }}" {{ 'selected' if selected_role == role }}>{{ role_labels.get(role, role|title) }}</option>
+          {% endfor %}
+        </select>
+        <small class="text-muted">Role tiers control who can review, approve, publish, and manage settings/users.</small>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="{{ 'Leave blank to keep current' if user else 'Min. 10 chars + complexity' }}" {% if not user %}required{% endif %} minlength="10">
+        {% if user %}
+        <small class="text-muted">Leave blank to keep the current password.</small>
+        {% else %}
+        <small class="text-muted">Use at least 10 characters with uppercase, lowercase, number, and symbol.</small>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> {{ 'Save Changes' if user else 'Create User' }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,511 @@
+{% extends "admin/base.html" %}
+{% block page_title %}CMS Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .dashboard-intro .card-body {
+    padding: 1.2rem;
+  }
+
+  .dashboard-intro h2 {
+    margin: 0 0 .4rem;
+    font-size: clamp(1.2rem, 2vw, 1.55rem);
+    font-weight: 800;
+  }
+
+  .dashboard-intro p {
+    margin: 0;
+    color: var(--text-muted);
+    max-width: 62ch;
+    font-size: .88rem;
+  }
+
+  .quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 1rem;
+  }
+
+  .quick-actions .btn {
+    padding: 7px 12px;
+    font-size: .76rem;
+  }
+
+  .dashboard-search .input-group-text,
+  .dashboard-search .form-control {
+    background: rgba(7, 13, 23, .72);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .dashboard-search .input-group-text {
+    color: #8fb9ff;
+  }
+
+  .dashboard-search .form-control {
+    font-size: .84rem;
+  }
+
+  .dashboard-search .btn {
+    min-width: 90px;
+  }
+
+  .kpi-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(7, 13, 23, .6);
+    padding: .82rem .86rem;
+    min-height: 92px;
+  }
+
+  .kpi-card .label {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #a9bed6;
+    margin-bottom: 6px;
+  }
+
+  .kpi-card .value {
+    margin: 0;
+    font-size: 1.34rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #f5f9ff;
+  }
+
+  .kpi-card .meta {
+    margin-top: 5px;
+    font-size: .72rem;
+    color: var(--text-muted);
+  }
+
+  .queue-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .queue-item {
+    border: 1px solid rgba(116, 160, 255, .22);
+    border-radius: 10px;
+    background: rgba(9, 16, 28, .72);
+    padding: .58rem .64rem;
+  }
+
+  .queue-item a {
+    display: block;
+  }
+
+  .queue-item strong {
+    display: block;
+    font-size: .78rem;
+    line-height: 1.25;
+    margin-bottom: 2px;
+  }
+
+  .queue-item span {
+    display: block;
+    font-size: .72rem;
+    color: var(--text-muted);
+  }
+
+  .section-title {
+    font-size: .84rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #b9ccdf;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .search-groups {
+    display: grid;
+    gap: 12px;
+  }
+
+  .search-group {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(7, 13, 23, 0.58);
+    padding: .7rem;
+  }
+
+  .search-group h6 {
+    margin-bottom: 8px;
+    font-size: .8rem;
+  }
+
+  .search-group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 7px;
+  }
+
+  .search-group li a {
+    display: block;
+    border: 1px solid rgba(116, 160, 255, .2);
+    border-radius: 9px;
+    background: rgba(10, 17, 30, 0.74);
+    padding: .5rem .58rem;
+  }
+
+  .search-group strong {
+    display: block;
+    font-size: .76rem;
+  }
+
+  .search-group span {
+    display: block;
+    font-size: .7rem;
+    color: var(--text-muted);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card dashboard-intro mb-4">
+  <div class="card-body">
+    <h2>Unified Control Center</h2>
+    <p>Daily work is front and center here in a simplified layout. Advanced configuration tools are still available
+      under the <strong>Advanced Tools</strong> menu in the sidebar.</p>
+    <div class="quick-actions">
+      {% if current_user.has_permission('content:manage') %}
+      <a href="{{ url_for('admin.cms_pages') }}" class="btn btn-outline-primary btn-sm">Manage Pages</a>
+      <a href="{{ url_for('admin.cms_articles') }}" class="btn btn-outline-primary btn-sm">Manage Articles</a>
+      <a href="{{ url_for('admin.services') }}" class="btn btn-outline-primary btn-sm">Manage Services</a>
+      <a href="{{ url_for('admin.media') }}" class="btn btn-outline-primary btn-sm">Media Library</a>
+      {% endif %}
+      {% if current_user.has_permission('support:manage') %}
+      <a href="{{ url_for('admin.contacts') }}" class="btn btn-outline-secondary btn-sm">Leads Inbox</a>
+      <a href="{{ url_for('admin.support_tickets') }}" class="btn btn-outline-secondary btn-sm">Support Queue</a>
+      {% endif %}
+      {% if current_user.has_permission('settings:manage') %}
+      <a href="{{ url_for('admin.headless_hub') }}" class="btn btn-outline-secondary btn-sm">Headless Hub</a>
+      <a href="{{ url_for('admin.settings') }}" class="btn btn-outline-secondary btn-sm">Settings</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% set content_structure_check = (health_checks | selectattr('label', 'equalto', 'Content Structure') | list | first) %}
+<div class="visually-hidden" aria-hidden="true">
+  <span>Content Structure</span>
+  <span class="check-badge {{ content_structure_check.state if content_structure_check else 'good' }}">{{
+    content_structure_check.issues if content_structure_check else 0 }} issue{% if (content_structure_check and
+    content_structure_check.issues != 1) or not content_structure_check %}s{% endif %}</span>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-lg-8">
+        <div class="section-title">Search Content</div>
+        <form method="GET" action="{{ url_for('admin.dashboard') }}" class="dashboard-search">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="search" name="q" value="{{ search_query }}" class="form-control"
+              placeholder="Search services, industries, posts, leads, tickets..." aria-label="Search CMS entities">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+          </div>
+        </form>
+      </div>
+      <div class="col-lg-4">
+        <div class="section-title">Find Ticket</div>
+        <form method="GET" action="{{ url_for('admin.dashboard') }}" class="dashboard-search">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fa-solid fa-ticket"></i></span>
+            <input type="search" name="ticket_number" value="{{ ticket_lookup_query }}" class="form-control"
+              placeholder="RS-..." aria-label="Search ticket by number">
+            <button type="submit" class="btn btn-outline-primary btn-sm">Find</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if ticket_lookup_query %}
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="section-title mb-2">Ticket Lookup</div>
+    {% if ticket_lookup_result %}
+    <a href="{{ url_for('admin.support_ticket_view', id=ticket_lookup_result.id) }}"
+      class="text-decoration-none queue-item d-block">
+      <strong>{{ ticket_lookup_result.ticket_number }} · {{ ticket_lookup_result.subject }}</strong>
+      <span>{{ ticket_lookup_result.client.full_name }} · {{ ticket_lookup_result.status.replace('_', ' ').title()
+        }}</span>
+    </a>
+    {% else %}
+    <div class="text-muted small">No ticket found for <code>{{ ticket_lookup_query }}</code>.</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="label">Health Score</div>
+      <p class="value">{{ health_score }}</p>
+      <div class="meta">Overall CMS and ops</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="label">Unread Leads</div>
+      <p class="value">{{ stats.contacts }}</p>
+      <div class="meta">{{ stats.contacts_24h }} in 24h</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="label">Open Tickets</div>
+      <p class="value">{{ stats.support_tickets }}</p>
+      <div class="meta">{{ stats.support_waiting }} waiting on client</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="label">Content Items</div>
+      <p class="value">{{ stats.services + stats.industries + stats.posts }}</p>
+      <div class="meta">Services + industries + posts</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-xl-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="section-title mb-0">Urgent Tickets</div>
+          <a href="{{ url_for('admin.support_tickets') }}" class="btn btn-sm btn-outline-primary">Queue</a>
+        </div>
+        <div class="queue-list">
+          {% for item in urgent_tickets %}
+          <div class="queue-item">
+            <a href="{{ url_for('admin.support_ticket_view', id=item.id) }}">
+              <strong>{{ item.ticket_number }} · {{ item.subject }}</strong>
+              <span>{{ item.priority|upper }} · {{ item.status.replace('_', ' ').title() }}</span>
+            </a>
+          </div>
+          {% else %}
+          <div class="queue-item"><span>No urgent tickets.</span></div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="section-title mb-0">Unread Leads</div>
+          <a href="{{ url_for('admin.contacts') }}" class="btn btn-sm btn-outline-primary">Inbox</a>
+        </div>
+        <div class="queue-list">
+          {% for item in unread_contacts %}
+          <div class="queue-item">
+            <a href="{{ url_for('admin.contact_view', id=item.id) }}">
+              <strong>{{ item.subject or 'New contact submission' }}</strong>
+              <span>{{ item.name }} · {{ item.email }}</span>
+            </a>
+          </div>
+          {% else %}
+          <div class="queue-item"><span>Inbox is clear.</span></div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="section-title mb-0">Stale Drafts</div>
+          <a href="{{ url_for('admin.posts') }}" class="btn btn-sm btn-outline-primary">Posts</a>
+        </div>
+        <div class="queue-list">
+          {% for item in stale_drafts %}
+          <div class="queue-item">
+            <a href="{{ url_for('admin.post_edit', id=item.id) }}">
+              <strong>{{ item.title }}</strong>
+              <span>Updated {{ item.updated_at.strftime('%b %d, %Y') }}</span>
+            </a>
+          </div>
+          {% else %}
+          <div class="queue-item"><span>No stale drafts.</span></div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if search_query %}
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <div class="section-title mb-1">Unified Search Results</div>
+        <div class="small text-muted">
+          Query: <code>{{ search_query }}</code> · {{ search_total }} result{% if search_total != 1 %}s{% endif %}
+        </div>
+      </div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+    </div>
+    {% if search_total > 0 %}
+    <div class="search-groups">
+      {% if search_results.services %}
+      <div class="search-group">
+        <h6><i class="fa-solid fa-gear me-1"></i>Services</h6>
+        <ul>
+          {% for item in search_results.services %}
+          <li><a href="{{ url_for('admin.service_edit', id=item.id) }}"><strong>{{ item.title }}</strong><span>{{
+                item.slug }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if search_results.industries %}
+      <div class="search-group">
+        <h6><i class="fa-solid fa-building me-1"></i>Industries</h6>
+        <ul>
+          {% for item in search_results.industries %}
+          <li><a href="{{ url_for('admin.industry_edit', id=item.id) }}"><strong>{{ item.title }}</strong><span>{{
+                item.slug }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if search_results.posts %}
+      <div class="search-group">
+        <h6><i class="fa-solid fa-newspaper me-1"></i>Posts</h6>
+        <ul>
+          {% for item in search_results.posts %}
+          <li><a href="{{ url_for('admin.post_edit', id=item.id) }}"><strong>{{ item.title }}</strong><span>{{
+                workflow_status_label(item.workflow_status) }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if search_results.contacts %}
+      <div class="search-group">
+        <h6><i class="fa-solid fa-envelope me-1"></i>Contacts</h6>
+        <ul>
+          {% for item in search_results.contacts %}
+          <li><a href="{{ url_for('admin.contact_view', id=item.id) }}"><strong>{{ item.subject or 'Contact submission'
+                }}</strong><span>{{ item.name }} · {{ item.email }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if search_results.tickets %}
+      <div class="search-group">
+        <h6><i class="fa-solid fa-ticket me-1"></i>Support Tickets</h6>
+        <ul>
+          {% for item in search_results.tickets %}
+          <li><a href="{{ url_for('admin.support_ticket_view', id=item.id) }}"><strong>{{ item.ticket_number }} · {{
+                item.subject }}</strong><span>{{ item.client.full_name }} · {{ item.status.replace('_', ' ').title()
+                }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="text-muted small">No records matched this query.</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-xl-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Recent Contact Submissions</h6>
+        <a href="{{ url_for('admin.contacts') }}" class="btn btn-sm btn-outline-primary">Inbox</a>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Subject</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in recent_contacts %}
+            <tr>
+              <td><a href="{{ url_for('admin.contact_view', id=c.id) }}" class="text-decoration-none">{{ c.name }}</a>
+              </td>
+              <td>{{ c.subject or 'No subject' }}</td>
+              <td>{{ c.created_at.strftime('%b %d, %Y') }}</td>
+              <td>{% if c.is_read %}<span class="badge bg-secondary">Read</span>{% else %}<span
+                  class="badge bg-primary">New</span>{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" class="text-center text-muted py-3">No submissions yet</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Recent Support Tickets</h6>
+        <a href="{{ url_for('admin.support_tickets') }}" class="btn btn-sm btn-outline-primary">Manage Tickets</a>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Client</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in recent_tickets %}
+            <tr>
+              <td><a href="{{ url_for('admin.support_ticket_view', id=t.id) }}"
+                  class="text-decoration-none"><code>{{ t.ticket_number }}</code></a></td>
+              <td>{{ t.client.full_name }}</td>
+              <td>
+                {% if is_quote_ticket(t) %}
+                <span class="badge rounded-pill bg-info text-dark">Quote</span>
+                {% else %}
+                <span class="badge rounded-pill bg-secondary">Support</span>
+                {% endif %}
+              </td>
+              <td>{{ t.status.replace('_', ' ').title() }}</td>
+              <td>{{ t.updated_at.strftime('%b %d, %Y') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-3">No support tickets yet</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

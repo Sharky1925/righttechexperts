@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+{% block title %}About Us — From Right On Repair to {{ site_settings.get('company_name', 'Right Tech Experts') }} |
+Orange County IT{% endblock %}
+{% block meta_description %}Founded in 2015 as Right On Repair, a computer and phone repair shop in Orange County, we've
+grown into {{ site_settings.get('company_name', 'Right Tech Experts') }} — a full-service managed IT company serving
+500+ businesses with 50+ certified professionals.{% endblock %}
+{% block og_title %}Our Story — From Repair Shop to {{ site_settings.get('company_name', 'Right Tech Experts') }}{%
+endblock %}
+{% block og_description %}What started as fixing cracked screens and slow computers became something bigger. Learn how
+Right On Repair evolved into Orange County's trusted managed IT partner.{% endblock %}
+{% block meta_keywords %}about Right On Repair, Right Tech Experts, Orange County IT company, computer repair Orange
+County, managed IT services, local IT team history, phone repair to managed services{% endblock %}
+
+{% block structured_data %}
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": {{ ('About ' ~ site_settings.get('company_name', 'Right Tech Experts')) | tojson }},
+  "description": {{ ('Founded as Right On Repair in 2015, we\'ve evolved into ' ~ site_settings.get('company_name', 'Right Tech Experts') ~ ' — Orange County\'s trusted managed IT partner serving 500+ businesses.') | tojson }},
+  "url": {{ public_url(request.base_url) | tojson }},
+  "mainEntity": {
+    "@type": "Organization",
+    "name": {{ site_settings.get('company_name', 'Right Tech Experts') | tojson }},
+    "alternateName": "Right On Repair",
+    "foundingDate": "2015",
+    "foundingLocation": {
+      "@type": "Place",
+      "name": "Orange County, California"
+    },
+    "description": "From a neighborhood computer and phone repair shop to a full-service managed IT provider. We bring the same hands-on care to enterprise technology that we brought to every cracked screen and slow laptop.",
+    "telephone": {{ site_settings.get('phone', '') | tojson }},
+    "email": {{ site_settings.get('email', '') | tojson }},
+    "areaServed": {
+      "@type": "AdministrativeArea",
+      "name": "Orange County, CA"
+    },
+    "numberOfEmployees": {
+      "@type": "QuantitativeValue",
+      "minValue": 50
+    },
+    "knowsAbout": [
+      "Managed IT Services",
+      "Computer Repair",
+      "Mobile Phone Repair",
+      "Cybersecurity",
+      "Cloud Computing",
+      "Network Infrastructure",
+      "IT Consulting"
+    ]
+  }
+}
+</script>
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": {{ public_url(url_for('main.index')) | tojson }}
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "About Us",
+      "item": {{ public_url(request.base_url) | tojson }}
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+{% set hdr = cb.get('header', {}) %}
+{% set story = cb.get('story', {}) %}
+{% set metrics = cb.get('metrics', {}) %}
+{% set ms = cb.get('milestones', {}) %}
+{% set vals = cb.get('values', {}) %}
+<section class="page-header page-header--enhanced">
+  <div class="page-header-glow" aria-hidden="true"></div>
+  <div class="page-header-glow-2" aria-hidden="true"></div>
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+        <li class="breadcrumb-item active">About</li>
+      </ol>
+    </nav>
+    <div class="hero-accent-icon"><i class="fa-solid fa-users-gear"></i></div>
+    <div class="hero-meta-badge"><span class="pulse-dot"></span> Est. 2015 · Orange County</div>
+    <h1 class="gradient-shimmer">{{ hdr.get('title', 'From Right On Repair to Right Tech Experts') }}</h1>
+    {% include "_hero_slogan.html" %}
+    <p>{{ hdr.get('subtitle', 'What started as a neighborhood repair shop grew into Right Tech Experts — a team that
+      Orange County businesses truly depend on.') }}</p>
+  </div>
+</section>
+
+<!-- Our Story + Metrics -->
+<section class="section">
+  <div class="container">
+    <div class="row align-items-center g-5 page-layout-grid">
+      <div class="col-lg-6 reveal-left">
+        <div class="section-label"><i class="fa-solid fa-scroll"></i> {{ story.get('label', 'Our Story') }}</div>
+        <h2 class="content-section-title">{{ story.get('title', 'It Started with a Screwdriver, a Soldering Iron, and a
+          Promise') }}</h2>
+        <p class="content-section-text">
+          {{ story.get('text', 'Back in 2015, Right On Repair was exactly what the name said — a small computer and
+          mobile phone repair shop in Orange County. We fixed cracked screens, rescued water-damaged phones, cleaned out
+          viruses, and brought slow laptops back to life. Our workspace was modest, but our promise was big: treat every
+          device like it is our own, and never let anyone leave until the problem is solved.') }}
+        </p>
+        <p class="content-section-text">
+          {{ story.get('text_2', 'Word spread. Families told their friends. Small businesses started calling — first for
+          a printer fix, then to set up a network, then to protect their data. We realized something: the same care we
+          put into repairing a cracked phone was exactly what businesses needed for their entire technology stack. They
+          wanted the people who showed up, listened, and actually fixed things — and that is exactly what Right Tech
+          Experts delivers today.') }}
+        </p>
+        <p class="content-section-text">
+          {% if story.get('text_3') %}
+          {{ story.text_3 }}
+          {% else %}
+          That is how Right On Repair became <span class="gradient-text">Right Tech Experts</span>. We did not abandon
+          our roots — we built on them. Today, Right Tech Experts delivers managed IT services, cybersecurity, cloud
+          solutions, and strategic consulting to 500+ businesses across Orange County. And yes, we still fix phones,
+          replace screens, and recover lost data. Because that repair bench where it all started taught us that
+          technology is personal — and at Right Tech Experts, it always will be.
+          {% endif %}
+        </p>
+      </div>
+      <div class="col-lg-6 reveal-right">
+        <div class="row g-3">
+          {% for m in metrics.get('items', [{'value': '500+', 'label': 'Businesses Served'}, {'value': '50+', 'label':
+          'Certified Professionals'}, {'value': '99.9%', 'label': 'Uptime Guarantee'}, {'value': '10+', 'label': 'Years
+          of Service'}]) %}
+          <div class="col-6">
+            <div class="metric-card metric-card--stat">
+              <div class="mc-value">{{ m.value }}</div>
+              <div class="mc-label">{{ m.label }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Timeline -->
+<section class="section section--alt">
+  <div class="container">
+    <div class="row g-5 page-layout-grid">
+      <div class="col-lg-5 reveal-left">
+        <div class="section-label"><i class="fa-solid fa-road"></i> {{ ms.get('label', 'Our Journey') }}</div>
+        <h2 class="content-section-title">{{ ms.get('title', 'Every Fix Led Us Here') }}</h2>
+        <p class="content-section-subtext">{{ ms.get('subtitle', 'From repairing our first cracked screen to managing
+          enterprise networks — the milestones that made us who we are.') }}</p>
+      </div>
+      <div class="col-lg-7 reveal-right">
+        {% for milestone in ms.get('items', [
+        {
+        'year': '2015',
+        'title': 'Right On Repair Opens Its Doors',
+        'description': 'A small workshop in Orange County with one mission: fix it right, fix it fast, and treat every
+        customer like family. We started with computer repair, phone screen replacements, and virus removals — one
+        device at a time.',
+        'icon': 'fa-solid fa-screwdriver-wrench'
+        },
+        {
+        'year': '2017',
+        'title': 'The Business Calls Start Coming',
+        'description': 'Local businesses who came in for a laptop fix started asking bigger questions — "Can you set up
+        our Wi-Fi?" "Can you protect us from hackers?" We said yes, learned fast, and never looked back.',
+        'icon': 'fa-solid fa-building'
+        },
+        {
+        'year': '2019',
+        'title': 'Managed IT Services Launch',
+        'description': 'We formalized what we had been doing organically: proactive monitoring, network management,
+        cybersecurity, and 24/7 support. The foundation of Right Tech Experts was being laid — one managed service
+        contract at a time.',
+        'icon': 'fa-solid fa-server'
+        },
+        {
+        'year': '2021',
+        'title': '200+ Clients & Growing Team',
+        'description': 'Crossed 200 business clients and grew to 30+ team members. Added cloud migration, data backup,
+        and compliance consulting. Our expanding capabilities made it clear — we had outgrown the name Right On
+        Repair.',
+        'icon': 'fa-solid fa-users'
+        },
+        {
+        'year': '2023',
+        'title': 'Right Tech Experts Is Born',
+        'description': 'With 400+ clients and a full enterprise IT portfolio, Right On Repair officially became Right
+        Tech Experts. A new name for a new chapter — but the same people, the same values, and the same hands-on
+        approach.',
+        'icon': 'fa-solid fa-rocket'
+        },
+        {
+        'year': '2025',
+        'title': 'Right Tech Experts Today: 500+ Businesses Strong',
+        'description': 'Right Tech Experts now serves 500+ businesses across Orange County with 50+ certified
+        professionals — managed IT, cybersecurity, cloud, and software development. And yes, we still fix phones and
+        computers. Because that is where it all began.',
+        'icon': 'fa-solid fa-globe'
+        }
+        ]) %}
+        <div class="timeline-item">
+          <div class="tl-dot"><i class="{{ milestone.icon }}"></i></div>
+          <div>
+            <h4>{{ milestone.year }} — {{ milestone.title }}</h4>
+            <p>{{ milestone.description }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Values -->
+{% set color_classes = ['blue', 'purple', 'green', 'amber', 'rose', 'cyan'] %}
+<section class="section">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-diamond"></i> {{ vals.get('label', 'Our Values') }}</div>
+      <h2>{{ vals.get('title', 'The Right Tech Experts Promise') }}</h2>
+    </div>
+    <div class="row g-4">
+      {% for v in vals.get('items', [
+      {'title': 'Fix It Right', 'description': 'Whether it is a cracked screen or a critical server — Right Tech Experts
+      does not cut corners. Every solution is done properly the first time.', 'icon': 'fa-solid fa-wrench', 'color':
+      'blue'},
+      {'title': 'People Over Tickets', 'description': 'Behind every support request is a real person with a real
+      deadline. At Right Tech Experts, we never forget that.', 'icon': 'fa-solid fa-heart', 'color': 'purple'},
+      {'title': 'Earn the Trust', 'description': 'We do not just sign contracts — we build relationships. Right Tech
+      Experts clients stay because they know we show up when it matters.', 'icon': 'fa-solid fa-handshake', 'color':
+      'green'},
+      {'title': 'Never Stop Learning', 'description': 'Technology changes every day. The Right Tech Experts team stays
+      current with certifications, training, and a genuine curiosity about what is next.', 'icon': 'fa-solid
+      fa-graduation-cap', 'color': 'amber'}
+      ]) %}
+      <div class="col-md-6 col-lg-3">
+        <div class="value-card reveal stagger-{{ loop.index }}">
+          <div class="icon-circle icon-circle-{{ v.get('color', color_classes[loop.index0 % 6]) }}"><i
+              class="{{ v.icon }}"></i></div>
+          <h4>{{ v.title }}</h4>
+          <p>{{ v.description }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="section section--alt">
+  <div class="container">
+    <div class="row align-items-center g-5 page-layout-grid">
+      <div class="col-lg-6 reveal-left">
+        <div class="section-label"><i class="fa-solid fa-shield-halved"></i> Why Right Tech Experts</div>
+        <h2 class="content-section-title">We Remember What It Is Like to Be Small</h2>
+        <p class="content-section-text">
+          Most IT companies were born in boardrooms. Right Tech Experts was born in a repair shop. That means we
+          understand what it feels like when your only computer crashes, when a phone holds everything your business
+          needs, or when a network outage costs real money you cannot afford to lose.
+        </p>
+        <p class="content-section-text">
+          Right Tech Experts brings enterprise-level technology to businesses of every size — with the warmth and
+          urgency of the shop we started in. No jargon, no runaround, just honest people who care about your technology
+          working the way it should.
+        </p>
+      </div>
+      <div class="col-lg-6 reveal-right">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="challenge-card h-100">
+              <div class="ch-icon blue"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+              <div class="ch-body">
+                <h4>Repair Roots</h4>
+                <p>We still fix devices alongside managing enterprise networks — because hands-on expertise matters.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="challenge-card h-100">
+              <div class="ch-icon purple"><i class="fa-solid fa-clock"></i></div>
+              <div class="ch-body">
+                <h4>Always Available</h4>
+                <p>24/7 support with real humans who pick up the phone — not bots, not voicemail trees.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="challenge-card h-100">
+              <div class="ch-icon green"><i class="fa-solid fa-map-pin"></i></div>
+              <div class="ch-body">
+                <h4>100% Local</h4>
+                <p>Based in Orange County, serving Orange County. We're your neighbors, not a call center across the
+                  country.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="challenge-card h-100">
+              <div class="ch-icon amber"><i class="fa-solid fa-certificate"></i></div>
+              <div class="ch-body">
+                <h4>Certified Team</h4>
+                <p>50+ professionals with industry certifications in Microsoft, Cisco, CompTIA, and cybersecurity.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Team -->
+<section class="section">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-users"></i> Leadership</div>
+      <h2>The People Behind the Promise</h2>
+    </div>
+    <div class="row g-4 justify-content-center">
+      {% for member in team %}
+      <div class="col-sm-6 col-lg-3">
+        <div class="team-card reveal stagger-{{ loop.index }}">
+          {% if member.photo %}
+          <img src="{{ url_for('admin.uploaded_file', filename=member.photo) }}" alt="{{ member.name }}" class="avatar"
+            loading="lazy" decoding="async">
+          {% else %}
+          <div class="avatar-placeholder">{{ member.name[0] }}</div>
+          {% endif %}
+          <h4>{{ member.name }}</h4>
+          <div class="position">{{ member.position }}</div>
+          {% if member.bio %}<div class="bio">{{ member.bio }}</div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+{% set about_cta = cb.get('cta', {}) %}
+<section class="section-sm section-bottom-spacious">
+  <div class="cta-section reveal-scale">
+    <div class="cta-inner">
+      <h2>{{ about_cta.get('title', 'Ready to Work with Right Tech Experts?') }}</h2>
+      <p>{{ about_cta.get('subtitle', 'Whether you need managed IT for your business or just a screen repair — Right
+        Tech Experts is here. Let us talk about what you need.') }}</p>
+      <div class="cta-actions cta-actions-dual">
+        {% if site_settings.get('phone') %}
+        <a href="tel:{{ site_settings.phone | replace(' ', '') | replace('(', '') | replace(')', '') | replace('-', '') }}"
+          class="btn btn-call"><i class="fa-solid fa-phone"></i> Call Now</a>
+        {% endif %}
+        <a href="{{ url_for('main.request_quote') }}" class="btn btn-primary">Request a Quote <i
+            class="fa-solid fa-arrow-right"></i></a>
+        <a href="{{ url_for('main.remote_support') }}" class="btn btn-remote-support"><i
+            class="fa-solid fa-life-ring"></i> Remote Support</a>
+        <a href="{{ url_for('main.contact') }}" class="btn btn-danger"><i class="fa-solid fa-envelope"></i> Send
+          Message</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

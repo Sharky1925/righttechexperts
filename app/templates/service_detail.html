@@ -1,0 +1,676 @@
+{% extends "base.html" %}
+{% set profile = service_profile or {} %}
+{% set service_description = (service.description or '') %}
+{% set fallback_desc = (service_description[:155] if service_description else (service.title ~ ' service support for Orange County businesses.')) %}
+{% set meta_desc = profile.get('meta_description', fallback_desc) %}
+{% set meta_title = profile.get('meta_title', service.title ~ ' — ' ~ site_settings.get('company_name', 'Right On Repair')) %}
+{% set profile_keywords = profile.get('keywords', [service.title ~ ' Orange County', service.title ~ ' service', 'business IT support']) %}
+{% set process_steps = profile.get('process', []) %}
+{% set tool_stack = profile.get('tools', []) %}
+{% set deliverables = profile.get('deliverables', []) %}
+{% set faqs = profile.get('faqs', []) %}
+{% set hero_badges = profile.get('hero_badges', []) %}
+{% set service_modules = profile.get('service_modules', []) %}
+{% set issue_solution_map = profile.get('issue_solution_map', []) %}
+{% set narrative_title = profile.get('narrative_title', 'Service Scope and Delivery Standards') %}
+{% set seo_content_blocks = profile.get('seo_content_blocks', []) %}
+{% set local_cities = profile.get('service_area_cities', []) %}
+{% set compliance_frameworks = profile.get('compliance_frameworks', []) %}
+{% set proof_points = profile.get('proof_points', []) %}
+{% set lead_time_steps = profile.get('lead_time_diagram', []) %}
+{% set related_technologies = profile.get('related_technologies', []) %}
+{% set supported_brands = profile.get('supported_brands', []) %}
+{% set brand_services = profile.get('brand_services', []) %}
+{% set related_services = related_services or [] %}
+{% set featured_industries = featured_industries or [] %}
+{% set related_posts = related_posts or [] %}
+{% set hero_tools = related_technologies if related_technologies else (tool_stack | map(attribute='name') | list) %}
+{% set hero_brands = supported_brands if supported_brands else (brand_services | map(attribute='brand') | list) %}
+
+{% block title %}{{ meta_title }}{% endblock %}
+{% block meta_description %}{{ meta_desc }}{% endblock %}
+{% block og_title %}{{ meta_title }}{% endblock %}
+{% block og_description %}{{ meta_desc }}{% endblock %}
+{% block meta_keywords %}{{ profile_keywords | join(', ') }}{% endblock %}
+
+{% block structured_data %}
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": {{ service.title | tojson }},
+  "description": {{ meta_desc | tojson }},
+  "serviceType": {{ service.service_type | tojson }},
+  "url": {{ public_url(request.base_url) | tojson }},
+  "provider": {
+    "@type": "Organization",
+    "name": {{ site_settings.get('company_name', 'Right On Repair') | tojson }},
+    "telephone": {{ site_settings.get('phone', '') | tojson }},
+    "email": {{ site_settings.get('email', '') | tojson }}
+  },
+  "areaServed": [
+    {% if local_cities %}
+    {% for city in local_cities %}
+    { "@type": "City", "name": {{ (city ~ ', CA') | tojson }} }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    {% else %}
+    { "@type": "AdministrativeArea", "name": "Orange County, CA" }
+    {% endif %}
+  ],
+  "availableChannel": {
+    "@type": "ServiceChannel",
+    "serviceUrl": {{ public_url(request.base_url) | tojson }},
+    "availableLanguage": ["en"],
+    "servicePhone": {
+      "@type": "ContactPoint",
+      "contactType": "sales",
+      "telephone": {{ site_settings.get('phone', '') | tojson }}
+    }
+  }{% if supported_brands %},
+  "brand": [
+    {% for brand in supported_brands %}
+    { "@type": "Brand", "name": {{ brand | tojson }} }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]{% endif %}{% if process_steps %},
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": {{ (service.title ~ ' Service Scope') | tojson }},
+    "itemListElement": [
+      {% for step in process_steps %}
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": {{ step.title | tojson }},
+          "description": {{ step.detail | tojson }}
+        }
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }{% endif %}
+}
+</script>
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": {{ meta_title | tojson }},
+  "description": {{ meta_desc | tojson }},
+  "keywords": {{ profile_keywords | join(', ') | tojson }},
+  "url": {{ public_url(request.base_url) | tojson }},
+  "about": {
+    "@type": "Service",
+    "name": {{ service.title | tojson }}
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": {{ site_settings.get('company_name', 'Right On Repair') | tojson }},
+    "url": {{ public_url(url_for('main.index')) | tojson }}
+  }
+}
+</script>
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": {{ public_url(url_for('main.index')) | tojson }}
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Services",
+      "item": {{ public_url(url_for('main.services')) | tojson }}
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": {{ service.title | tojson }},
+      "item": {{ public_url(request.base_url) | tojson }}
+    }
+  ]
+}
+</script>
+{% if process_steps %}
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": {{ (service.title ~ ' Workflow') | tojson }},
+  "description": {{ ('Step-by-step process used for ' ~ service.title) | tojson }},
+  "step": [
+    {% for step in process_steps %}
+    {
+      "@type": "HowToStep",
+      "position": {{ loop.index }},
+      "name": {{ step.title | tojson }},
+      "text": {{ step.detail | tojson }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
+{% if related_services %}
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": {{ ('Related services for ' ~ service.title) | tojson }},
+  "itemListElement": [
+    {% for rel in related_services %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "name": {{ rel.title | tojson }},
+      "url": {{ public_url(url_for('main.service_detail', slug=rel.slug)) | tojson }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
+{% if faqs %}
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in faqs %}
+    {
+      "@type": "Question",
+      "name": {{ faq.q | tojson }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ faq.a | tojson }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="service-detail-clean">
+<section class="page-header section-bottom-spacious page-header--landing-tight service-theme service-theme--{{ service.slug }} {% if service.service_type == 'repair' %}page-header--repair-tight{% endif %}" id="service-overview">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('main.services') }}">Services</a></li>
+        <li class="breadcrumb-item active">{{ service.title }}</li>
+      </ol>
+    </nav>
+    <div class="row g-5 page-layout-grid align-items-start service-hero-row {% if service.service_type == 'repair' %}service-repair-hero-row{% endif %}">
+      <div class="col-lg-7 reveal-left">
+        <div class="ind-hero-icon"><i class="{{ service.icon_class }}"></i></div>
+        {% if profile.get('positioning_badge') %}
+        <div class="service-kicker-badge">{{ profile.get('positioning_badge') }}</div>
+        {% endif %}
+        <h1>{{ service.title }} <span class="gradient-text">{{ profile.get('intro_kicker', 'Solutions') }}</span></h1>
+        {% include "_hero_slogan.html" %}
+        <p class="industry-hero-description">{{ meta_desc }}</p>
+        <div class="hero-buttons industry-hero-actions">
+          {% if site_settings.get('phone') %}
+          <a href="tel:{{ site_settings.phone | replace(' ', '') | replace('(', '') | replace(')', '') | replace('-', '') }}" class="btn btn-call"><i class="fa-solid fa-phone"></i> Call Now</a>
+          {% endif %}
+          <a href="{{ url_for('main.request_quote') }}" class="btn btn-primary">Request A Quote <i class="fa-solid fa-magnifying-glass-chart"></i></a>
+          <a href="{{ url_for('main.remote_support') }}" class="btn btn-remote-support">Remote Support <i class="fa-solid fa-life-ring"></i></a>
+          <a href="{{ url_for('main.contact', subject='Support Message') }}" class="btn btn-danger"><i class="fa-solid fa-envelope"></i> Send Message</a>
+        </div>
+        {% if hero_badges %}
+        <div class="service-hero-badges">
+          {% for badge in hero_badges[:3] %}
+          <span><i class="{{ badge.icon }}"></i>{{ badge.label }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-5 reveal-right service-hero-side-col">
+        {% set mc_colors = ['blue', 'purple', 'green', 'amber'] %}
+        <div class="row g-3 service-hero-metric-grid">
+          {% for outcome in deliverables[:4] %}
+          <div class="col-6">
+            <article class="metric-card service-hero-metric-card">
+              <div class="mc-icon {{ mc_colors[(loop.index0) % 4] }}"><i class="{{ outcome.icon }}"></i></div>
+              <div class="mc-label">{{ outcome.label }}</div>
+              <div class="mc-value">{{ outcome.value }}</div>
+            </article>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% if hero_tools or hero_brands %}
+    <div class="row g-4 service-hero-support-row reveal">
+      {% if hero_tools %}
+      <div class="{% if hero_brands %}col-lg-6{% else %}col-12{% endif %}">
+        <aside class="service-visual-panel service-hero-support-card service-hero-tools-card h-100">
+          <div class="service-panel-head">
+            <h2><i class="fa-solid fa-layer-group"></i> Tools &amp; Technologies</h2>
+            <p>Core platforms used to deliver {{ service.title | lower }} outcomes.</p>
+          </div>
+          <div class="service-tool-cloud service-tool-cloud--compact">
+            {% for technology in hero_tools[:8] %}
+            <span class="service-tool-pill"><i class="fa-solid fa-microchip"></i>{{ technology }}</span>
+            {% endfor %}
+          </div>
+        </aside>
+      </div>
+      {% endif %}
+      {% if hero_brands %}
+      <div class="{% if hero_tools %}col-lg-6{% else %}col-12{% endif %}">
+        <aside class="service-visual-panel service-hero-support-card service-hero-brands-card h-100">
+          <div class="service-panel-head">
+            <h2><i class="fa-solid fa-certificate"></i> Supported Brands</h2>
+            <p>Validated service coverage for major hardware and platform vendors.</p>
+          </div>
+          <div class="brand-pill-grid brand-pill-grid--compact">
+            {% for brand in hero_brands[:8] %}
+            <span class="brand-pill">{{ brand }}</span>
+            {% endfor %}
+          </div>
+        </aside>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+    <div class="service-snapshot-grid reveal mt-4">
+      <article class="service-snapshot-card">
+        <div class="snap-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+        <h3>Primary Search Intent</h3>
+        <p>{{ profile_keywords[0] if profile_keywords else (service.title ~ ' Orange County') }}</p>
+      </article>
+      <article class="service-snapshot-card">
+        <div class="snap-icon"><i class="fa-solid fa-cubes"></i></div>
+        <h3>Specialized Modules</h3>
+        {% if service_modules %}
+        <p>{{ service_modules | length }} service tracks aligned to {{ service.title | lower }} outcomes.</p>
+        {% else %}
+        <p>Structured delivery playbooks aligned to {{ service.title | lower }} business outcomes.</p>
+        {% endif %}
+      </article>
+      <article class="service-snapshot-card">
+        <div class="snap-icon"><i class="fa-solid fa-location-dot"></i></div>
+        <h3>Local Coverage</h3>
+        {% if local_cities %}
+        <p>{{ local_cities | length }} Orange County cities with onsite and remote delivery support.</p>
+        {% else %}
+        <p>Orange County-wide onsite and remote delivery coverage for every service engagement.</p>
+        {% endif %}
+      </article>
+      <article class="service-snapshot-card">
+        <div class="snap-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+        <h3>Lead-Time Transparency</h3>
+        <p>{{ lead_time_steps[0].phase if lead_time_steps else 'Structured intake' }} with clear delivery checkpoints.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+{% if service_modules %}
+<section class="section" id="service-scope">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-cubes"></i> Service Scope</div>
+      <h2>{{ profile.get('modules_title', 'Specialized Service Programs') }}</h2>
+    </div>
+    <div class="row g-4 justify-content-center">
+      {% set module_colors = ['blue', 'purple', 'green', 'amber', 'rose', 'cyan'] %}
+      {% for item in service_modules %}
+      <div class="col-md-6 col-lg-3">
+        <article class="challenge-card reveal stagger-{{ loop.index }} h-100">
+          <div class="ch-icon {{ module_colors[(loop.index0) % 6] }}"><i class="{{ item.icon }}"></i></div>
+          <div class="ch-body">
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.detail }}</p>
+          </div>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if seo_content_blocks %}
+<section class="section section--alt" id="service-positioning">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-file-lines"></i> Service Positioning</div>
+      <h2>{{ narrative_title }}</h2>
+    </div>
+    <div class="row g-4">
+      {% for block in seo_content_blocks %}
+      <div class="col-lg-6">
+        <div class="service-visual-panel h-100 reveal {% if loop.index is even %}reveal-right{% else %}reveal-left{% endif %}">
+          <p class="mb-0">{{ block }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div class="glow-line"></div>
+
+{% if issue_solution_map %}
+<section class="section" id="service-issues">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-triangle-exclamation"></i> What We Solve</div>
+      <h2>Common Challenges and Execution Response</h2>
+    </div>
+    <div class="issue-map-grid">
+      {% for item in issue_solution_map %}
+      <article class="issue-map-card reveal stagger-{{ loop.index }}">
+        <div class="issue-icon"><i class="{{ item.icon }}"></i></div>
+        <h3>{{ item.issue }}</h3>
+        <p>{{ item.solution }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div class="glow-line"></div>
+
+{% if process_steps %}
+<section class="section" id="service-workflow">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-diagram-project"></i> How It Works</div>
+      <h2>{{ profile.get('board_title', 'Service Workflow') }}</h2>
+    </div>
+    <div class="row g-4 justify-content-center">
+      {% set step_colors = ['blue', 'purple', 'amber', 'green', 'rose', 'cyan'] %}
+      {% for step in process_steps %}
+      <div class="col-md-6 col-lg-4">
+        <div class="challenge-card reveal stagger-{{ loop.index }}">
+          <div class="ch-icon {{ step_colors[(loop.index0) % 6] }}"><i class="{{ step.icon }}"></i></div>
+          <div class="ch-body">
+            <h4>{{ step.title }}</h4>
+            <p>{{ step.detail }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div class="glow-line"></div>
+
+{% if lead_time_steps %}
+<section class="section section--alt" id="service-lead-time">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-hourglass-half"></i> Lead Time Diagram</div>
+      <h2>From Intake to Delivery</h2>
+    </div>
+    <div class="lead-time-grid">
+      {% for item in lead_time_steps %}
+      <article class="lead-time-card reveal stagger-{{ loop.index }}">
+        <div class="lead-time-step">Step {{ loop.index }}</div>
+        <div class="lead-time-icon"><i class="{{ item.icon }}"></i></div>
+        <h3>{{ item.phase }}</h3>
+        <div class="lead-time-eta">{{ item.eta }}</div>
+        <p>{{ item.detail }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div class="glow-line"></div>
+
+{% if local_cities or compliance_frameworks or proof_points %}
+<section class="section section--alt" id="service-trust">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-location-dot"></i> Local Coverage &amp; Trust</div>
+      <h2>Operational Readiness Across Orange County</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="service-visual-panel h-100 reveal-left">
+          <div class="service-panel-head">
+            <h2><i class="fa-solid fa-map-location-dot"></i> Cities We Serve</h2>
+            <p>Field and remote support coverage for organizations across Orange County.</p>
+          </div>
+          {% if local_cities %}
+          <div class="service-tool-cloud">
+            {% for city in local_cities %}
+            <span class="service-tool-pill"><i class="fa-solid fa-location-crosshairs"></i>{{ city }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="service-visual-panel h-100 reveal-right">
+          <div class="service-panel-head">
+            <h2><i class="fa-solid fa-shield-halved"></i> Governance Alignment</h2>
+            <p>Delivery model built around security, accountability, and measurable outcomes.</p>
+          </div>
+          <ul class="service-value-list mb-0">
+            {% for item in compliance_frameworks %}
+            <li><i class="fa-solid fa-circle-check"></i>{{ item }}</li>
+            {% endfor %}
+            {% for point in proof_points %}
+            <li><i class="fa-solid fa-bullseye"></i><strong>{{ point.label }}:</strong> {{ point.value }}</li>
+            {% endfor %}
+            {% if not compliance_frameworks and not proof_points %}
+            <li><i class="fa-solid fa-circle-check"></i>Security-first execution, documented escalation paths, and milestone-based reporting for every engagement.</li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div class="glow-line"></div>
+
+{% if tool_stack %}
+<section class="section" id="service-tools">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-layer-group"></i> Tools &amp; Platforms</div>
+      <h2>Related Technologies &amp; Tools</h2>
+    </div>
+    {% if related_technologies %}
+    <div class="service-technology-wrap reveal">
+      <div class="service-tool-cloud">
+        {% for technology in related_technologies %}
+        <span class="service-tool-pill"><i class="fa-solid fa-microchip"></i>{{ technology }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    <div class="row g-4">
+      {% set tool_colors = ['blue', 'purple', 'green', 'amber', 'rose', 'cyan'] %}
+      {% for tool in tool_stack %}
+      <div class="col-md-6">
+        <div class="feature-item reveal stagger-{{ loop.index }}">
+          <div class="fi-icon {{ tool_colors[(loop.index0) % 6] }}"><i class="{{ tool.icon }}"></i></div>
+          <div>
+            <h4>{{ tool.name }}</h4>
+            {% if tool.desc %}<p>{{ tool.desc }}</p>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if supported_brands or brand_services %}
+<section class="section section--alt" id="service-brands">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-certificate"></i> Brand Coverage</div>
+      <h2>Supported Brands and Service Scope</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="service-visual-panel h-100 reveal-left">
+          <div class="service-panel-head">
+            <h2><i class="fa-solid fa-tags"></i> Brands We Support</h2>
+            <p>Technical coverage across major commercial and consumer hardware ecosystems.</p>
+          </div>
+          {% if supported_brands %}
+          <div class="brand-pill-grid">
+            {% for brand in supported_brands %}
+            <span class="brand-pill">{{ brand }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="service-visual-panel h-100 reveal-right">
+          <div class="service-panel-head">
+            <h2><i class="fa-solid fa-list-check"></i> Service Coverage by Brand</h2>
+            <p>Repair, diagnostics, and validation workflows tailored to each platform family.</p>
+          </div>
+          <div class="brand-service-grid">
+            {% for item in brand_services %}
+            <article class="brand-service-card">
+              <h3>{{ item.brand }}</h3>
+              <p>{{ item.services }}</p>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if related_services %}
+<section class="section section--alt">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-arrows-split-up-and-left"></i> Related Services</div>
+      <h2>Build a Full Coverage IT Stack</h2>
+    </div>
+    <div class="row g-4">
+      {% set rel_colors = ['blue', 'purple', 'green', 'amber', 'rose', 'cyan'] %}
+      {% for rel in related_services %}
+      <div class="col-md-6 col-lg-4">
+        <a href="{{ url_for('main.service_detail', slug=rel.slug) }}" class="feature-item reveal stagger-{{ loop.index }} h-100 text-decoration-none">
+          <div class="fi-icon {{ rel_colors[(loop.index0) % 6] }}"><i class="{{ rel.icon_class }}"></i></div>
+          <div>
+            <h4>{{ rel.title }}</h4>
+            <p>{{ (rel.description or '')[:140] }}{% if rel.description and rel.description|length > 140 %}...{% endif %}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if featured_industries %}
+<section class="section">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-building"></i> Industry Coverage</div>
+      <h2>Playbooks for Sector-Specific Environments</h2>
+    </div>
+    <div class="row g-4 service-industries-grid">
+      {% set ind_colors = ['blue', 'purple', 'green', 'amber', 'rose', 'cyan'] %}
+      {% for ind in featured_industries %}
+      <div class="col-md-6 col-lg-4">
+        <a href="{{ url_for('main.industry_detail', slug=ind.slug) }}"
+           class="industry-card industry-card--service-link reveal stagger-{{ loop.index }} h-100 text-decoration-none"
+           aria-label="View {{ ind.title }} industry playbook">
+          <div class="ind-icon {{ ind_colors[(loop.index0) % 6] }}"><i class="{{ ind.icon_class }}"></i></div>
+          <h3>{{ ind.title }}</h3>
+          <p>{{ (ind.description or '')[:140] }}{% if ind.description and ind.description|length > 140 %}...{% endif %}</p>
+          <span class="ind-link">See industry playbook <i class="fa-solid fa-arrow-right"></i></span>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if related_posts %}
+<section class="section section--alt">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-newspaper"></i> Expert Insights</div>
+      <h2>Related Articles and Best Practices</h2>
+    </div>
+    <div class="row g-4">
+      {% set post_colors = ['cyan', 'rose', 'amber'] %}
+      {% for item in related_posts %}
+      {% set blurb = item.excerpt if item.excerpt else (item.content | striptags) %}
+      <div class="col-lg-4">
+        <a href="{{ url_for('main.post', slug=item.slug) }}" class="feature-item reveal stagger-{{ loop.index }} h-100 text-decoration-none">
+          <div class="fi-icon {{ post_colors[(loop.index0) % 3] }}"><i class="fa-solid fa-newspaper"></i></div>
+          <div>
+            <h4>{{ item.title }}</h4>
+            <p>{{ blurb[:150] }}{% if blurb|length > 150 %}...{% endif %}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if faqs %}
+<section class="section" id="service-faq">
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <div class="section-label"><i class="fa-solid fa-circle-question"></i> FAQ</div>
+      <h2>Frequently Asked Questions</h2>
+    </div>
+    <div class="service-faq-list reveal">
+      {% for faq in faqs %}
+      <details class="service-faq-item" {% if loop.first %}open{% endif %}>
+        <summary>{{ faq.q }}</summary>
+        <p>{{ faq.a }}</p>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section-sm section-bottom-spacious" id="service-contact">
+  <div class="cta-section reveal-scale">
+    <div class="cta-inner">
+      <h2>Request A Quote</h2>
+      <p>Get a scoped plan for {{ service.title | lower }}, with clear priorities, timeline options, and next steps.</p>
+      <div class="cta-actions cta-actions-dual">
+        {% if site_settings.get('phone') %}
+        <a href="tel:{{ site_settings.phone | replace(' ', '') | replace('(', '') | replace(')', '') | replace('-', '') }}" class="btn btn-call"><i class="fa-solid fa-phone"></i> Call Now</a>
+        {% endif %}
+        <a href="{{ url_for('main.request_quote') }}" class="btn btn-quote"><i class="fa-solid fa-file-invoice-dollar"></i> Request A Quote</a>
+        <a href="{{ url_for('main.contact', subject='Service Consultation: ' ~ service.title) }}" class="btn btn-danger"><i class="fa-solid fa-envelope"></i> Send Message</a>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+{% endblock %}

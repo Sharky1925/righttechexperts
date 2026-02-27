@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="{{ theme_mode|default('light') }}" data-theme="{{ theme_mode|default('light') }}">
+
+<head>
+  <script
+    nonce="{{ csp_nonce }}">(function () { var root = document.documentElement; var t = ''; try { t = localStorage.getItem('theme') || '' } catch (e) { t = '' } if (t !== 'dark' && t !== 'light') { t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light' } root.setAttribute('data-theme', t); root.setAttribute('data-bs-theme', t) })()</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ site_settings.get('meta_title', 'Right On Repair — IT Services & Computer Repair in Orange
+    County') }}{% endblock %}</title>
+  <meta name="description"
+    content="{% block meta_description %}{{ site_settings.get('meta_description', 'Orange County IT services: managed IT, cybersecurity, cloud solutions, software and web development, surveillance camera installation, and device repairs. Same-day support.') }}{% endblock %}">
+  <meta name="author" content="{{ site_settings.get('company_name', 'Right On Repair') }}">
+  <meta name="keywords"
+    content="{% block meta_keywords %}IT services Orange County, managed IT Orange County, cybersecurity Orange County, cloud solutions Orange County, computer repair Orange County, business IT support, software development Orange County, web development Orange County{% endblock %}">
+  <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+  <meta name="googlebot"
+    content="{% block meta_googlebot %}index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1{% endblock %}">
+  <meta name="format-detection" content="telephone=no, email=no">
+  <link rel="canonical" href="{{ public_url(request.base_url) }}">
+  {% block meta_extra %}{% endblock %}
+  <!-- Open Graph -->
+  <meta property="og:title"
+    content="{% block og_title %}{{ site_settings.get('meta_title', 'Right On Repair') }}{% endblock %}">
+  <meta property="og:description"
+    content="{% block og_description %}{{ site_settings.get('meta_description', '') }}{% endblock %}">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:url" content="{{ public_url(request.url) }}">
+  <meta property="og:site_name" content="{{ site_settings.get('company_name', 'Right On Repair') }}">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image"
+    content="{% block og_image %}{{ public_url(url_for('static', filename='icon.png')) }}{% endblock %}">
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ self.og_title() }}">
+  <meta name="twitter:description" content="{{ self.og_description() }}">
+  <meta name="twitter:image" content="{{ public_url(url_for('static', filename='icon.png')) }}">
+  {% set asset_version = asset_v if asset_v is defined and asset_v else 'dev' %}
+  <!-- Fonts & CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+  {% if google_fonts_url %}
+  <link href="{{ google_fonts_url }}" rel="stylesheet">
+  {% else %}
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800&family=Sora:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  {% endif %}
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="alternate icon" type="image/png" href="{{ url_for('static', filename='icon.png') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}?v={{ asset_version }}" rel="stylesheet">
+  {% if theme_css_vars %}
+  {# Only explicit layout/typography tokens are global.
+  Color and surface tokens are scoped to dark mode only because the
+  current admin token model stores a single palette (no dark/light split).
+  This keeps light mode deterministic and prevents accidental dark-token
+  overrides when users switch to light mode. #}
+  {% set universal_vars =
+  ['--radius-lg','--radius-md','--radius-sm','--radius-full','--btn-radius','--font-body','--font-heading','--font-slogan','--ease-smooth','--ease-soft','--transition-fast','--transition-base','--motion-duration-base','--motion-ease-standard']
+  %}
+  <style>
+    html {
+        {
+        % for key,
+        value in theme_css_vars.items() %
+      }
+
+        {
+        % if key in universal_vars %
+      }
+
+        {
+          {
+          key
+        }
+      }
+
+      : {
+          {
+          value
+        }
+      }
+
+      ;
+
+        {
+        % endif %
+      }
+
+        {
+        % endfor %
+      }
+    }
+
+    [data-theme="dark"] {
+        {
+        % for key,
+        value in theme_css_vars.items() %
+      }
+
+        {
+        % if key not in universal_vars %
+      }
+
+        {
+          {
+          key
+        }
+      }
+
+      : {
+          {
+          value
+        }
+      }
+
+      ;
+
+        {
+        % endif %
+      }
+
+        {
+        % endfor %
+      }
+    }
+  </style>
+  {% endif %}
+  {{ site_settings.get('custom_head_code', '') | safe }}
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  {% block head_extra %}{% endblock %}
+  <!-- Structured Data -->
+  {% set _social_links = [] %}
+  {% if site_settings.get('facebook', '').strip() %}{% if _social_links.append(site_settings.get('facebook')) %}{% endif
+  %}{% endif %}
+  {% if site_settings.get('twitter', '').strip() %}{% if _social_links.append(site_settings.get('twitter')) %}{% endif
+  %}{% endif %}
+  {% if site_settings.get('linkedin', '').strip() %}{% if _social_links.append(site_settings.get('linkedin')) %}{% endif
+  %}{% endif %}
+  <script nonce="{{ csp_nonce }}" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": {{ site_settings.get('company_name', 'Right On Repair') | tojson }},
+    "description": {{ site_settings.get('meta_description', '') | tojson }},
+    "url": {{ public_base_url | tojson }},
+    "image": {{ public_url(url_for('static', filename='icon.png')) | tojson }},
+    "telephone": {{ site_settings.get('phone', '') | tojson }},
+    "email": {{ site_settings.get('email', '') | tojson }},
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": {{ site_settings.get('address', '') | tojson }},
+      "addressLocality": "Orange County",
+      "addressRegion": "CA",
+      "postalCode": {{ site_settings.get('zip_code', '') | tojson }},
+      "addressCountry": "US"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 33.7175,
+      "longitude": -117.8311
+    },
+    "areaServed": {
+      "@type": "AdministrativeArea",
+      "name": "Orange County, CA"
+    },
+    "priceRange": "$$",
+    "openingHoursSpecification": [
+      { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "08:00", "closes": "18:00" },
+      { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "09:00", "closes": "15:00" }
+    ]{% if _social_links %},
+    "sameAs": [
+      {% for link in _social_links %}
+      {{ link | tojson }}{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]{% endif %}
+  }
+  </script>
+  {% block structured_data %}{% endblock %}
+</head>
+
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div class="scroll-progress"></div>
+  <div class="ambient-orb ambient-orb--one" aria-hidden="true"></div>
+  <div class="ambient-orb ambient-orb--two" aria-hidden="true"></div>
+  <div class="ambient-grid" aria-hidden="true"></div>
+
+  <header class="site-header sticky-top">
+    <!-- Topbar — desktop only -->
+    <div class="topbar d-none d-md-block">
+      <div class="container">
+        <div class="topbar-inner">
+          <div class="topbar-group">
+            <div class="topbar-item">
+              <span class="topbar-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <span>5-Star Rated</span>
+              </span>
+            </div>
+            {% if site_settings.get('phone') %}
+            <div class="topbar-item topbar-item-phone">
+              <a class="topbar-contact-link"
+                href="tel:{{ site_settings.phone | replace(' ', '') | replace('(', '') | replace(')', '') | replace('-', '') }}"
+                aria-label="Call {{ site_settings.phone }}">
+                <i class="fa-solid fa-phone"></i> {{ site_settings.phone }}
+              </a>
+            </div>
+            {% endif %}
+            {% if site_settings.get('email') %}
+            <div class="topbar-item topbar-item-email">
+              <a class="topbar-contact-link" href="mailto:{{ site_settings.email }}"
+                aria-label="Email {{ site_settings.email }}">
+                <i class="fa-solid fa-envelope"></i> {{ site_settings.email }}
+              </a>
+            </div>
+            {% endif %}
+          </div>
+          <div class="topbar-group">
+            {% if site_settings.get('address') %}
+            <div class="topbar-item topbar-item-address">
+              <i class="fa-solid fa-location-dot"></i> {{ site_settings.address }}
+            </div>
+            {% endif %}
+            <form method="GET" action="{{ url_for('main.ticket_search') }}" class="topbar-ticket-search" role="search"
+              aria-label="Ticket search">
+              <label class="visually-hidden" for="topbarTicketSearch">Search ticket number</label>
+              <input id="topbarTicketSearch" type="search" name="ticket_number"
+                value="{{ request.args.get('ticket_number', '') if request.endpoint == 'main.ticket_search' else '' }}"
+                placeholder="Track Ticket #" maxlength="40" autocomplete="off">
+              <button type="submit" aria-label="Search ticket"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+            <div class="topbar-item">
+              <a href="{{ url_for('main.request_quote') }}">Free Consultation <i
+                  class="fa-solid fa-arrow-right topbar-arrow-icon"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-main">
+      <div class="container">
+        <a class="navbar-brand brand-stack" href="{{ url_for('main.index') }}"
+          aria-label="Right Tech Experts, Right On Repair">
+          <span class="brand-primary">Right Tech Experts</span>
+          <span class="brand-secondary">Right On Repair</span>
+        </a>
+
+        <!-- Desktop CTA buttons — visible only on lg+ -->
+        <div class="nav-cta-group d-none d-lg-flex">
+          {% if site_settings.get('phone') %}
+          <a class="btn btn-call btn-nav-call"
+            href="tel:{{ site_settings.phone | replace(' ', '') | replace('(', '') | replace(')', '') | replace('-', '') }}"><i
+              class="fa-solid fa-phone"></i> Call Now</a>
+          {% endif %}
+          <a class="btn btn-quote btn-nav-quote" href="{{ url_for('main.request_quote') }}"><i
+              class="fa-solid fa-file-lines"></i> Request a Quote</a>
+          <a class="btn btn-remote-support btn-nav-remote" href="{{ url_for('main.remote_support') }}"><i
+              class="fa-solid fa-life-ring"></i> Remote Support</a>
+          <a class="btn btn-danger btn-nav-cta" href="{{ url_for('main.contact', subject='Support Message') }}"><i
+              class="fa-solid fa-envelope"></i> Send Message</a>
+          <button type="button" class="theme-toggle" id="theme-toggle-desktop" aria-label="Toggle theme">
+            <i class="fa-solid fa-sun theme-icon-sun"></i>
+            <i class="fa-solid fa-moon theme-icon-moon"></i>
+          </button>
+        </div>
+
+        <!-- Mobile toggler -->
+        <button class="navbar-toggler d-lg-none" type="button" aria-controls="navbarMainCollapse" aria-expanded="false"
+          aria-label="Toggle navigation" id="mobileMenuToggle">
+          <span class="toggler-bar"></span>
+          <span class="toggler-bar"></span>
+          <span class="toggler-bar"></span>
+        </button>
+
+        <!-- Nav links — collapse on mobile, always visible on desktop -->
+        <div class="navbar-collapse collapse" id="navbarMainCollapse">
+          <ul class="navbar-nav align-items-lg-center gap-1">
+            <li class="nav-item"><a class="nav-link{% if request.endpoint == 'main.index' %} active{% endif %}"
+                href="{{ url_for('main.index') }}">Home</a></li>
+            <li class="nav-item"><a class="nav-link{% if request.endpoint == 'main.about' %} active{% endif %}"
+                href="{{ url_for('main.about') }}">About</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle{% if request.endpoint in ['main.services', 'main.service_detail'] %} active{% endif %}"
+                href="{{ url_for('main.services') }}" aria-expanded="false">IT Services</a>
+              <ul class="dropdown-menu">
+                {% for s in nav_professional %}
+                <li><a class="dropdown-item" href="{{ url_for('main.service_detail', slug=s.slug) }}"><i
+                      class="{{ s.icon_class }} me-2 dropdown-item-icon"></i>{{ s.title }}</a></li>
+                {% endfor %}
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="{{ url_for('main.services') }}"><strong>View All
+                      Services</strong></a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="{{ url_for('main.services') }}" aria-expanded="false">Technical
+                Repair Services</a>
+              <ul class="dropdown-menu">
+                {% for s in nav_repair %}
+                <li><a class="dropdown-item" href="{{ url_for('main.service_detail', slug=s.slug) }}"><i
+                      class="{{ s.icon_class }} me-2 dropdown-item-icon"></i>{{ s.title }}</a></li>
+                {% endfor %}
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="{{ url_for('main.services') }}"><strong>View All
+                      Services</strong></a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle{% if request.endpoint in ['main.industries', 'main.industry_detail'] %} active{% endif %}"
+                href="{{ url_for('main.industries') }}" aria-expanded="false">Industries</a>
+              <ul class="dropdown-menu">
+                {% for ind in nav_industries %}
+                <li><a class="dropdown-item" href="{{ url_for('main.industry_detail', slug=ind.slug) }}"><i
+                      class="{{ ind.icon_class }} me-2 dropdown-item-icon"></i>{{ ind.title }}</a></li>
+                {% endfor %}
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="{{ url_for('main.industries') }}"><strong>View All
+                      Industries</strong></a></li>
+              </ul>
+            </li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('main.request_quote') }}"><i
+                  class="fa-solid fa-file-invoice me-2"></i>Request Quote</a></li>
+            <!-- Mobile theme toggle -->
+            <li class="nav-item d-lg-none mt-2">
+              <button type="button" class="theme-toggle theme-toggle-mobile" id="theme-toggle-mobile"
+                aria-label="Toggle theme">
+                <i class="fa-solid fa-sun theme-icon-sun"></i>
+                <i class="fa-solid fa-moon theme-icon-moon"></i>
+                <span class="theme-toggle-label theme-label-dark">Light Mode</span>
+                <span class="theme-toggle-label theme-label-light">Dark Mode</span>
+              </button>
+            </li>
+            <!-- Mobile-only CTA buttons -->
+            <li class="nav-item d-lg-none mt-2">
+              <div class="mobile-nav-ctas">
+                <form method="GET" action="{{ url_for('main.ticket_search') }}"
+                  class="ticket-track-form ticket-track-form-mobile" role="search" aria-label="Ticket search">
+                  <label class="visually-hidden" for="mobileTicketSearch">Search ticket number</label>
+                  <input id="mobileTicketSearch" type="search" name="ticket_number"
+                    value="{{ request.args.get('ticket_number', '') if request.endpoint == 'main.ticket_search' else '' }}"
+                    placeholder="Track Ticket #" maxlength="40" autocomplete="off">
+                  <button type="submit"><i class="fa-solid fa-magnifying-glass me-1"></i>Track</button>
+                </form>
+                {% if site_settings.get('phone') %}
+                <a class="btn btn-call btn-nav-call"
+                  href="tel:{{ site_settings.phone | replace(' ', '') | replace('(', '') | replace(')', '') | replace('-', '') }}"><i
+                    class="fa-solid fa-phone"></i> Call Now</a>
+                {% endif %}
+                <a class="btn btn-quote btn-nav-quote" href="{{ url_for('main.request_quote') }}"><i
+                    class="fa-solid fa-file-lines"></i> Request a Quote</a>
+                <a class="btn btn-remote-support btn-nav-remote" href="{{ url_for('main.remote_support') }}"><i
+                    class="fa-solid fa-life-ring"></i> Remote Support</a>
+                <a class="btn btn-danger btn-nav-cta" href="{{ url_for('main.contact', subject='Support Message') }}"><i
+                    class="fa-solid fa-envelope"></i> Send Message</a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="container flash-wrap" aria-live="polite">
+    {% for category, message in messages %}
+    <div class="alert alert-modern alert-{{ category }} alert-dismissible fade show" role="alert">
+      <i class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  <!-- Main Content -->
+  <main id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row g-5">
+        <div class="col-lg-4">
+          <div class="brand-text brand-stack-footer" aria-label="Right Tech Experts, Right On Repair">
+            <span class="brand-primary">Right Tech Experts</span>
+            <span class="brand-secondary">Right On Repair</span>
+          </div>
+          <p>{{ site_settings.get('tagline', 'Managed IT, cybersecurity, cloud architecture, software development, and
+            technical repairs for local businesses. Local response, transparent communication.') }}</p>
+          {% if site_settings.get('phone') or site_settings.get('email') or site_settings.get('address') %}
+          <ul class="footer-contact-list">
+            {% if site_settings.get('phone') %}<li class="footer-contact-item"><i
+                class="fa-solid fa-phone me-2 footer-contact-icon"></i>{{ site_settings.phone }}</li>{% endif %}
+            {% if site_settings.get('email') %}<li class="footer-contact-item"><i
+                class="fa-solid fa-envelope me-2 footer-contact-icon"></i>{{ site_settings.email }}</li>{% endif %}
+            {% if site_settings.get('address') %}<li><i class="fa-solid fa-location-dot me-2 footer-contact-icon"></i>{{
+              site_settings.address }}</li>{% endif %}
+          </ul>
+          {% endif %}
+          <div class="footer-social">
+            {% if site_settings.get('facebook') %}<a href="{{ site_settings.facebook }}" target="_blank"
+              rel="noopener noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>{% endif %}
+            {% if site_settings.get('twitter') %}<a href="{{ site_settings.twitter }}" target="_blank"
+              rel="noopener noreferrer" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>{% endif %}
+            {% if site_settings.get('linkedin') %}<a href="{{ site_settings.linkedin }}" target="_blank"
+              rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>{% endif %}
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <h5>Services</h5>
+          <ul>
+            {% for s in nav_professional[:5] %}
+            <li><a href="{{ url_for('main.service_detail', slug=s.slug) }}">{{ s.title }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="col-6 col-lg-2">
+          <h5>Company</h5>
+          <ul>
+            <li><a href="{{ url_for('main.about') }}">About Us</a></li>
+            <li><a href="{{ url_for('main.services') }}">All Services</a></li>
+            <li><a href="{{ url_for('main.industries') }}">Industries</a></li>
+            <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+            <li><a href="{{ url_for('main.request_quote') }}">Request Quote</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4">
+          <h5>Service Area</h5>
+          <p class="footer-service-note">{{ footer_content.get('service_area', {}).get('description', 'On-site and
+            remote support for businesses throughout Orange County.') }}</p>
+          <div class="footer-chips">
+            {% for city in footer_content.get('service_area', {}).get('cities', ['Anaheim', 'Irvine', 'Santa Ana',
+            'Huntington Beach', 'Costa Mesa', 'Fullerton', 'Orange', 'Mission Viejo', 'Newport Beach', 'Laguna Beach',
+            'Tustin', 'Lake Forest']) %}
+            <span class="footer-chip">{{ city }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom d-flex flex-wrap justify-content-between align-items-center">
+        <span>{{ site_settings.get('footer_text', '© 2024 Right On Repair. All rights reserved.') | replace('&copy;',
+          '©') }}</span>
+        <span><a href="{{ url_for('admin.login') }}" class="footer-admin-link" rel="nofollow">Admin</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Call Button -->
+  {% if site_settings.get('phone') %}
+  <a class="mobile-call"
+    href="tel:{{ site_settings.phone | replace(' ', '') | replace('(', '') | replace(')', '') | replace('-', '') }}">
+    <i class="fa-solid fa-phone"></i> Call Now
+  </a>
+  {% endif %}
+
+  {{ site_settings.get('custom_footer_code', '') | safe }}
+  <script nonce="{{ csp_nonce }}"
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/main.js') }}?v={{ asset_version }}"></script>
+  <script nonce="{{ csp_nonce }}">
+      (function () {
+        function sysPref() { return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light' }
+        function getTheme() { return document.documentElement.getAttribute('data-theme') || sysPref() }
+        function setTheme(t) {
+          document.documentElement.setAttribute('data-theme', t);
+          document.documentElement.setAttribute('data-bs-theme', t);
+          try { localStorage.setItem('theme', t) } catch (e) { }
+        }
+        function toggle() { setTheme(getTheme() === 'dark' ? 'light' : 'dark') }
+        function bind() {
+          var btns = document.querySelectorAll('.theme-toggle');
+          for (var i = 0; i < btns.length; i++) { btns[i].addEventListener('click', toggle) }
+        }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bind) } else { bind() }
+      })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}{{ industry.title }} IT Solutions — {{ site_settings.get('company_name', 'Right On Repair') }}{%
+endblock %}
+{% block meta_description %}{{ seo_description or ('Expert IT solutions for the ' ~ industry.title ~ ' industry. ' ~
+industry.description) }}{%
+endblock %}
+{% block og_title %}{{ industry.title }} IT Solutions — {{ site_settings.get('company_name', 'Right On Repair') }}{%
+endblock %}
+{% block meta_keywords %}{{ seo_keywords or (industry.title ~ ' IT support, ' ~ industry.title ~ ' cybersecurity,
+industry IT services Orange County, Right On Repair') }}{% endblock %}
+
+{% block structured_data %}
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": {{ (industry.title ~ ' IT Solutions') | tojson }},
+  "description": {{ (seo_description or industry.description) | tojson }},
+  "provider": {
+    "@type": "Organization",
+    "name": {{ site_settings.get('company_name', 'Right On Repair') | tojson }},
+    "telephone": {{ (site_settings.get('phone', '') or '') | tojson }},
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Fountain Valley",
+      "addressRegion": "CA",
+      "postalCode": "92708",
+      "addressCountry": "US"
+    }
+  },
+  "areaServed": {
+    "@type": "City",
+    "name": "Orange County",
+    "containedInPlace": { "@type": "State", "name": "California" }
+  },
+  "serviceType": {{ ('IT Solutions for ' ~ industry.title) | tojson }}{% if industry.solutions %},
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": {{ (industry.title ~ ' IT Services') | tojson }},
+    "itemListElement": [
+      {% set solution_items_schema = industry.solutions.split('|') %}
+      {% for sol in solution_items_schema %}
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": {{ sol | tojson }}{% if solution_descriptions.get(sol) %},
+          "description": {{ solution_descriptions.get(sol) | tojson }}{% endif %}
+        }
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }{% endif %}
+}
+</script>
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": {{ public_url(url_for('main.index')) | tojson }} },
+    { "@type": "ListItem", "position": 2, "name": "Industries", "item": {{ public_url(url_for('main.industries')) | tojson }} },
+    { "@type": "ListItem", "position": 3, "name": {{ industry.title | tojson }} }
+  ]
+}
+</script>
+{% set challenge_items_faq = industry.challenges.split('|') if industry.challenges else [] %}
+{% if challenge_items_faq and challenge_descriptions %}
+<script nonce="{{ csp_nonce }}" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for ch in challenge_items_faq %}
+    {% if challenge_descriptions.get(ch) %}
+    {
+      "@type": "Question",
+      "name": {{ ('What is the challenge of ' ~ ch ~ ' in ' ~ industry.title ~ '?') | tojson }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ challenge_descriptions.get(ch) | tojson }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="industry-detail-clean">
+  <!-- Hero — NO reveal classes so content is immediately visible above the fold -->
+  <section class="page-header page-header--landing-tight">
+    <div class="page-header-glow" aria-hidden="true"></div>
+    <div class="page-header-glow-2" aria-hidden="true"></div>
+    <div class="container">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('main.industries') }}">Industries</a></li>
+          <li class="breadcrumb-item active">{{ industry.title }}</li>
+        </ol>
+      </nav>
+      <div class="row align-items-center g-5 page-layout-grid">
+        <div class="col-lg-7">
+          <div class="ind-hero-icon"><i class="{{ industry.icon_class }}"></i></div>
+          <h1>{{ industry.title }} <span class="gradient-text">IT Solutions</span></h1>
+          {% include "_hero_slogan.html" %}
+          <p class="industry-hero-description">{{ industry.hero_description }}</p>
+          <div class="hero-buttons industry-hero-actions">
+            {% if site_settings.get('phone') %}
+            <a href="tel:{{ site_settings.phone | replace(' ', '') | replace('(', '') | replace(')', '') | replace('-', '') }}"
+              class="btn btn-call"><i class="fa-solid fa-phone"></i> Call Now</a>
+            {% endif %}
+            <a href="{{ url_for('main.request_quote') }}" class="btn btn-primary">Request a Quote <i
+                class="fa-solid fa-arrow-right"></i></a>
+            <a href="{{ url_for('main.remote_support') }}" class="btn btn-remote-support"><i
+                class="fa-solid fa-life-ring"></i> Remote Support</a>
+            <a href="{{ url_for('main.contact', subject='Support Message') }}" class="btn btn-danger"><i
+                class="fa-solid fa-envelope"></i> Send Message</a>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          {% set stat_items = industry.stats.split('|') if industry.stats else [] %}
+          {% if stat_items %}
+          <div class="row g-3 industry-stat-grid">
+            {% set stat_icons = ['fa-solid fa-chart-line', 'fa-solid fa-shield-halved', 'fa-solid fa-bolt', 'fa-solid
+            fa-check-double'] %}
+            {% for stat in stat_items %}
+            {% set parts = stat.split(':') %}
+            <div class="col-6 industry-stat-col">
+              <div class="metric-card metric-card--stat">
+                <div class="mc-icon"><i class="{{ stat_icons[(loop.index0) % 4] }}"></i></div>
+                <div class="mc-value">{{ parts[1] if parts|length > 1 else '' }}</div>
+                <div class="mc-label">{{ parts[0] }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="glow-line"></div>
+
+  <!-- Challenges -->
+  {% set challenge_items = industry.challenges.split('|') if industry.challenges else [] %}
+  {% if challenge_items %}
+  <section class="section" id="challenges">
+    <div class="container">
+      <div class="section-heading text-center reveal">
+        <div class="section-label section-label--industry-challenges"><i class="fa-solid fa-triangle-exclamation"></i>
+          Industry Challenges</div>
+        <h2>Challenges in {{ industry.title }}</h2>
+        <p class="section-subtitle">Common technology pain points we solve for {{ industry.title | lower }} teams.</p>
+      </div>
+      <div class="row g-4 justify-content-center">
+        {% set challenge_icons = ['fa-solid fa-lock', 'fa-solid fa-plug', 'fa-solid fa-clock', 'fa-solid fa-expand',
+        'fa-solid fa-bug'] %}
+        {% set challenge_colors = ['blue', 'purple', 'amber', 'green', 'rose'] %}
+        {% for ch in challenge_items %}
+        <div class="col-md-6 col-lg-4">
+          <div class="challenge-card reveal stagger-{{ loop.index }}">
+            <div class="ch-icon {{ challenge_colors[(loop.index0) % 5] }}"><i
+                class="{{ challenge_icons[(loop.index0) % 5] }}"></i></div>
+            <div>
+              <h4>{{ ch }}</h4>
+              {% if challenge_descriptions.get(ch) %}
+              <p class="card-desc">{{ challenge_descriptions.get(ch) }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <div class="glow-line"></div>
+
+  <!-- Solutions -->
+  {% set solution_items = industry.solutions.split('|') if industry.solutions else [] %}
+  {% if solution_items %}
+  <section class="section section--alt" id="solutions">
+    <div class="container">
+      <div class="section-heading text-center reveal">
+        <div class="section-label"><i class="fa-solid fa-check-double"></i> Our Solutions</div>
+        <h2>How We Solve It</h2>
+        <p class="section-subtitle">Targeted solutions designed for {{ industry.title | lower }} operations.</p>
+      </div>
+      <div class="row g-4">
+        {% set sol_icons = ['fa-solid fa-shield-halved', 'fa-solid fa-link', 'fa-solid fa-server', 'fa-solid fa-cloud',
+        'fa-solid fa-chart-line'] %}
+        {% for sol in solution_items %}
+        <div class="col-md-6">
+          <div class="solution-card reveal stagger-{{ loop.index }}">
+            <div class="sol-number">{{ '%02d' | format(loop.index) }}</div>
+            <div class="sol-icon"><i class="{{ sol_icons[(loop.index0) % 5] }}"></i></div>
+            <div>
+              <h4>{{ sol }}</h4>
+              {% if solution_descriptions.get(sol) %}
+              <p class="card-desc">{{ solution_descriptions.get(sol) }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Related Services -->
+  {% if services %}
+  <section class="section" id="services">
+    <div class="container">
+      <div class="section-heading text-center reveal">
+        <div class="section-label"><i class="fa-solid fa-cube"></i> Related Services</div>
+        <h2>Services for {{ industry.title }}</h2>
+        <p class="section-subtitle">Explore the services we deliver to support {{ industry.title | lower }} teams.</p>
+      </div>
+      <div class="row g-4">
+        {% set colors = ['blue','purple','green','amber','rose','cyan'] %}
+        {% for service in services[:6] %}
+        <div class="col-md-6 col-lg-4">
+          <div class="service-card reveal stagger-{{ loop.index }}">
+            <div class="icon-wrap {{ colors[(loop.index0) % 6] }}"><i class="{{ service.icon_class }}"></i></div>
+            <h3>{{ service.title }}</h3>
+            <p>{{ (service.description or 'Business-ready service delivery with predictable outcomes.') | truncate(88,
+              False) }}</p>
+            <a href="{{ url_for('main.service_detail', slug=service.slug) }}" class="card-link stretched-link"
+              aria-label="Learn more about {{ service.title }}">Learn more <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Other Industries -->
+  {% if other_industries %}
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-heading text-center reveal">
+        <div class="section-label"><i class="fa-solid fa-building"></i> More Industries</div>
+        <h2>Explore Other Industries</h2>
+      </div>
+      <div class="row g-3 justify-content-center">
+        {% set colors = ['blue','purple','green','amber','rose','cyan','blue','purple'] %}
+        {% for ind in other_industries %}
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <a href="{{ url_for('main.industry_detail', slug=ind.slug) }}"
+            class="industry-card industry-card--compact reveal stagger-{{ loop.index }}">
+            <div class="ind-icon {{ colors[(loop.index0) % 8] }}"><i class="{{ ind.icon_class }}"></i></div>
+            <h3>{{ ind.title }}</h3>
+            <span class="ind-link">Explore <i class="fa-solid fa-arrow-right"></i></span>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- CTA -->
+  <section class="section-sm section-bottom-spacious">
+    <div class="cta-section reveal-scale">
+      <div class="cta-inner">
+        <h2>Ready to Transform Your {{ industry.title }} IT?</h2>
+        <p>Let's build a technology strategy tailored to your industry.</p>
+        <div class="cta-actions cta-actions-dual">
+          {% if site_settings.get('phone') %}
+          <a href="tel:{{ site_settings.phone | replace(' ', '') | replace('(', '') | replace(')', '') | replace('-', '') }}"
+            class="btn btn-call"><i class="fa-solid fa-phone"></i> Call Now</a>
+          {% endif %}
+          <a href="{{ url_for('main.request_quote') }}" class="btn btn-primary">Request a Quote <i
+              class="fa-solid fa-arrow-right"></i></a>
+          <a href="{{ url_for('main.remote_support') }}" class="btn btn-remote-support"><i
+              class="fa-solid fa-life-ring"></i> Remote Support</a>
+          <a href="{{ url_for('main.contact', subject='Support Message') }}" class="btn btn-danger"><i
+              class="fa-solid fa-envelope"></i> Send Message</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

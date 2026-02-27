@@ -1,0 +1,10 @@
+Django>=5.1,<6
+sentry-sdk[django]>=2,<3
+whitenoise>=6,<7
+psycopg2-binary>=2.9,<3
+Pillow>=12,<13
+python-slugify>=8,<9
+bleach>=6,<7
+gunicorn>=23,<24
+
+Jinja2>=3.1,<4
