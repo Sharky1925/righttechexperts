@@ -1,0 +1,168 @@
+{% extends "admin/base.html" %}
+{% block page_title %}Ticket {{ item.ticket_number }}{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Ticket Number</label>
+        <p><code>{{ item.ticket_number }}</code></p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Ticket Type</label>
+        <p>
+          {% if is_quote_ticket %}
+          <span class="badge rounded-pill bg-info text-dark">Quote Request</span>
+          {% else %}
+          <span class="badge rounded-pill bg-secondary">Support</span>
+          {% endif %}
+        </p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Client</label>
+        <p>{{ item.client.full_name }}<br><small class="text-muted">{{ item.client.email }}</small></p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Subject</label>
+        <p>{{ item.subject }}</p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Service</label>
+        <p>{{ item.service_slug or '-' }}</p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Current Stage</label>
+        <p>
+          <span class="badge {{ support_ticket_stage_badge(current_ticket_stage) }}">{{ support_ticket_stage_label(current_ticket_stage) }}</span>
+          <small class="d-block text-muted mt-1">Detailed status: {{ support_ticket_status_label(item.status) }}</small>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Created</label>
+        <p>{{ item.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Last Updated</label>
+        <p>{{ item.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-bold">Client Request</label>
+        <div class="p-3 bg-light rounded ticket-details-text">{{ item.details }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body">
+    <h5 class="mb-3">Admin Review Actions</h5>
+    <div class="d-flex flex-wrap gap-2">
+      <form method="POST" action="{{ url_for('admin.support_ticket_review', id=item.id) }}">
+        {{ csrf_input() }}
+        <input type="hidden" name="review_action" value="pending">
+        <button type="submit" class="btn btn-outline-warning">Mark Pending</button>
+      </form>
+      <form method="POST" action="{{ url_for('admin.support_ticket_review', id=item.id) }}">
+        {{ csrf_input() }}
+        <input type="hidden" name="review_action" value="done">
+        <button type="submit" class="btn btn-outline-success">Mark Done</button>
+      </form>
+      <form method="POST" action="{{ url_for('admin.support_ticket_review', id=item.id) }}">
+        {{ csrf_input() }}
+        <input type="hidden" name="review_action" value="closed">
+        <button type="submit" class="btn btn-outline-secondary">Close Ticket</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="mb-0">Activity Timeline</h5>
+      <span class="badge bg-dark-subtle text-dark">{{ ticket_events|length }} events</span>
+    </div>
+    {% if ticket_events %}
+    <ul class="list-group list-group-flush">
+      {% for event in ticket_events %}
+      <li class="list-group-item px-0">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+          <span class="badge {{ support_ticket_event_badge(event.event_type) }}">{{ support_ticket_event_label(event.event_type) }}</span>
+          <small class="text-muted">{{ format_datetime_local(event.created_at) }}</small>
+        </div>
+        {% if event.message %}
+        <p class="mb-2">{{ event.message }}</p>
+        {% endif %}
+        <p class="text-muted small mb-2">
+          <i class="fa-solid fa-user-shield me-1"></i>{{ event.actor_name }}
+          {% if event.actor_type %}• {{ event.actor_type.replace('_', ' ')|title }}{% endif %}
+        </p>
+        {% if event.stage_from and event.stage_to and event.stage_from != event.stage_to %}
+        <p class="small mb-1">
+          Stage:
+          <span class="badge {{ support_ticket_stage_badge(event.stage_from) }}">{{ support_ticket_stage_label(event.stage_from) }}</span>
+          <i class="fa-solid fa-arrow-right-long mx-1 text-muted"></i>
+          <span class="badge {{ support_ticket_stage_badge(event.stage_to) }}">{{ support_ticket_stage_label(event.stage_to) }}</span>
+        </p>
+        {% endif %}
+        {% if event.status_from and event.status_to and event.status_from != event.status_to %}
+        <p class="small text-muted mb-0">
+          Status:
+          <strong>{{ support_ticket_status_label(event.status_from) }}</strong>
+          <i class="fa-solid fa-arrow-right-long mx-1"></i>
+          <strong>{{ support_ticket_status_label(event.status_to) }}</strong>
+        </p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted mb-0">No timeline events recorded yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <form method="post" action="{{ url_for('admin.support_ticket_view', id=item.id) }}">
+      {{ csrf_input() }}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-select">
+            <option value="pending" {% if current_ticket_stage == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="done" {% if current_ticket_stage == 'done' %}selected{% endif %}>Done</option>
+            <option value="closed" {% if current_ticket_stage == 'closed' %}selected{% endif %}>Closed</option>
+            <option disabled>──────────</option>
+            <option value="open" {% if item.status == 'open' %}selected{% endif %}>Detailed: Open</option>
+            <option value="in_progress" {% if item.status == 'in_progress' %}selected{% endif %}>Detailed: In Progress</option>
+            <option value="waiting_customer" {% if item.status == 'waiting_customer' %}selected{% endif %}>Detailed: Waiting on Client</option>
+            <option value="resolved" {% if item.status == 'resolved' %}selected{% endif %}>Detailed: Resolved</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Priority</label>
+          <select name="priority" class="form-select">
+            <option value="low" {% if item.priority == 'low' %}selected{% endif %}>Low</option>
+            <option value="normal" {% if item.priority == 'normal' %}selected{% endif %}>Normal</option>
+            <option value="high" {% if item.priority == 'high' %}selected{% endif %}>High</option>
+            <option value="critical" {% if item.priority == 'critical' %}selected{% endif %}>Critical</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Review Note (optional)</label>
+          <input name="review_note" class="form-control" placeholder="Example: Hardware replaced, waiting customer confirmation.">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Internal Notes</label>
+          <textarea name="internal_notes" rows="8" class="form-control" placeholder="Visible only in admin">{{ item.internal_notes or '' }}</textarea>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <a href="{{ url_for('admin.support_tickets') }}" class="btn btn-outline-secondary">Back to Tickets</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

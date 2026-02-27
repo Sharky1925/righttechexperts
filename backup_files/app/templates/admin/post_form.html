@@ -1,0 +1,124 @@
+{% extends "admin/base.html" %}
+{% block page_title %}{{ 'Edit' if item else 'New' }} Post{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    {% set current_status = request.form.get('workflow_status', item.workflow_status if item and item.workflow_status else 'draft') %}
+    {% set current_schedule = request.form.get('scheduled_publish_at', format_datetime_local(item.scheduled_publish_at) if item else '') %}
+    <form method="post" enctype="multipart/form-data" id="postForm">
+            {{ csrf_input() }}
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label">Title *</label>
+          <input type="text" name="title" class="form-control" value="{{ item.title if item else '' }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Category</label>
+          <select name="category_id" class="form-select">
+            <option value="">-- None --</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {{ 'selected' if item and item.category_id == cat.id }}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Excerpt</label>
+          <textarea name="excerpt" class="form-control" rows="2">{{ item.excerpt if item else '' }}</textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Content *</label>
+          <textarea name="content" id="editor" class="form-control" rows="12">{{ item.content if item else '' }}</textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Featured Image</label>
+          <input type="file" name="featured_image" class="form-control" accept="image/*">
+          {% if item and item.featured_image %}<small class="text-muted">Current: {{ item.featured_image }}</small>{% endif %}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Workflow Status</label>
+          <select name="workflow_status" class="form-select">
+            {% for status_key in workflow_options %}
+            <option value="{{ status_key }}" {{ 'selected' if current_status == status_key }}>{{ workflow_status_label(status_key) }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Scheduled Publish (UTC)</label>
+          <input type="datetime-local" name="scheduled_publish_at" class="form-control" value="{{ current_schedule }}">
+          <small class="text-muted">Optional. Requires Publisher/Admin role.</small>
+        </div>
+        {% if item %}
+        <div class="col-md-6">
+          <label class="form-label">Change Note</label>
+          <input type="text" name="change_note" class="form-control" placeholder="Brief description of changes" maxlength="260">
+        </div>
+        {% endif %}
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">{{ 'Update' if item else 'Create' }} Post</button>
+          <a href="{{ url_for('admin.posts') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+          <span class="text-muted ms-3 small" id="autosaveIndicator"></span>
+        </div>
+      </div>
+    </form>
+    {% include 'admin/_seo_fields.html' %}
+    {% if item and versions is defined and versions %}
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-header bg-transparent border-0 d-flex align-items-center justify-content-between" style="cursor:pointer" data-bs-toggle="collapse" data-bs-target="#versionHistory" aria-expanded="false">
+        <h6 class="mb-0 fw-bold"><i class="fa-solid fa-clock-rotate-left me-2"></i>Version History ({{ versions|length }})</h6>
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
+      <div class="collapse" id="versionHistory">
+        <div class="card-body pt-0">
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead><tr><th>#</th><th>Note</th><th>Date</th><th></th></tr></thead>
+              <tbody>
+                {% for v in versions %}
+                <tr>
+                  <td>v{{ v.version_number }}</td>
+                  <td>{{ v.change_note or '—' }}</td>
+                  <td>{{ v.created_at.strftime('%Y-%m-%d %H:%M') if v.created_at else '—' }}</td>
+                  <td><form method="post" action="{{ url_for('admin.post_restore', id=v.id) }}" class="d-inline" onsubmit="return confirm('Restore version {{ v.version_number }}?')">{{ csrf_input() }}<button type="submit" class="btn btn-sm btn-outline-warning"><i class="fa-solid fa-rotate-left"></i></button></form></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}" src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script nonce="{{ csp_nonce }}">
+  tinymce.init({
+    selector: '#editor',
+    height: 400,
+    menubar: false,
+    plugins: 'lists link image code table',
+    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
+    promotion: false
+  });
+</script>
+{% if item %}
+<script nonce="{{ csp_nonce }}">
+(function(){
+  var indicator = document.getElementById('autosaveIndicator');
+  var form = document.getElementById('postForm');
+  if (!form || !indicator) return;
+  setInterval(function(){
+    if (typeof tinymce !== 'undefined' && tinymce.get('editor')) tinymce.get('editor').save();
+    var fd = new FormData(form);
+    fd.append('_autosave', '1');
+    fetch('{{ url_for("admin.post_autosave", id=item.id) }}', {method:'POST',body:fd})
+    .then(function(r){return r.json()})
+    .then(function(d){if(d.ok) indicator.textContent='Draft saved '+new Date().toLocaleTimeString()})
+    .catch(function(){});
+  }, 60000);
+})();
+</script>
+{% endif %}
+{% endblock %}
